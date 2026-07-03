@@ -1,0 +1,109 @@
+/* Container Form Styling */
+.certification-form {
+  max-width: 480px;
+  margin: 2rem auto;
+  padding: 2.5rem;
+  background-color: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05), 0 5px 10px rgba(0, 0, 0, 0.03);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  box-sizing: border-box;
+}
+
+/* Form Headings / Labels if you add them later, styled defensively */
+.certification-form * {
+  box-sizing: border-box;
+}
+
+/* Text, URL, and File Inputs */
+.certification-form input[type="text"],
+.certification-form input[type="url"] {
+  width: 100%;
+  padding: 0.85rem 1rem;
+  font-size: 0.95rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  background-color: #f8fafc;
+  color: #1e293b;
+  transition: all 0.2s ease-in-out;
+}
+
+/* Input Focus States */
+.certification-form input[type="text"]:focus,
+.certification-form input[type="url"]:focus {
+  outline: none;
+  border-color: #3b82f6;
+  background-color: #ffffff;
+  box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.15);
+}
+
+/* Disabled State (When file is uploaded) */
+.certification-form input:disabled {
+  background-color: #f1f5f9;
+  border-color: #cbd5e1;
+  color: #94a3b8;
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+/* Divider Text Style ("Or upload certificate file...") */
+.form-divider {
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: #64748b;
+  margin: 0.5rem 0 0.25rem 0;
+  display: flex;
+  align-items: center;
+}
+
+/* Custom File Input Styling */
+.certification-form input[type="file"] {
+  width: 100%;
+  font-size: 0.9rem;
+  color: #64748b;
+}
+
+/* Styling the native upload button inside the file input */
+.certification-form input[type="file"]::file-selector-button {
+  background-color: #f1f5f9;
+  color: #475569;
+  border: 1px solid #cbd5e1;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 500;
+  margin-right: 1rem;
+  transition: all 0.2s ease;
+}
+
+.certification-form input[type="file"]::file-selector-button:hover {
+  background-color: #e2e8f0;
+  color: #334155;
+}
+
+/* Primary Submit Button */
+.certification-form button[type="submit"] {
+  width: 100%;
+  padding: 0.9rem;
+  margin-top: 0.5rem;
+  background-color: #2563eb;
+  color: #ffffff;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s ease, transform 0.1s ease;
+  box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.2);
+}
+
+.certification-form button[type="submit"]:hover {
+  background-color: #1d4ed8;
+}
+
+.certification-form button[type="submit"]:active {
+  transform: scale(0.98);
+}
