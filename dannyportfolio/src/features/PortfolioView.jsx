@@ -29,6 +29,9 @@ export const PortfolioView = () => {
     references: [] 
   });
   const [loading, setLoading] = useState(true);
+  
+  // State for image lightbox preview modal
+  const [activeLightboxImg, setActiveLightboxImg] = useState(null);
 
   useEffect(() => {
     const collectAllData = async () => {
@@ -52,6 +55,20 @@ export const PortfolioView = () => {
     };
     collectAllData();
   }, []);
+
+  // Handler function extracted from DashboardView logic to open external links/documents securely
+  const handleViewDocument = (rec) => {
+    if (rec.certificate_url && typeof rec.certificate_url === "string" && rec.certificate_url.startsWith("http")) {
+      window.open(rec.certificate_url, "_blank", "noopener,noreferrer");
+      return;
+    }
+    const parsedImages = safeParseUrls(rec.image_urls);
+    if (parsedImages && parsedImages.length > 0) {
+      window.open(parsedImages[0], "_blank", "noopener,noreferrer");
+      return;
+    }
+    alert("No document file or external verification link available for this certification.");
+  };
 
   if (loading) {
     return (
@@ -120,9 +137,16 @@ export const PortfolioView = () => {
           box-shadow: 0 8px 20px rgba(59, 130, 246, 0.2);
         }
 
-        .gallery-image:hover {
+        .gallery-image:hover, .doc-preview-image:hover {
           transform: scale(1.05);
           border-color: #3b82f6 !important;
+          box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15);
+        }
+
+        .inline-view-btn:hover {
+          background: #2563eb !important;
+          transform: translateY(-1px);
+          box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2);
         }
       `}</style>
 
@@ -207,6 +231,8 @@ export const PortfolioView = () => {
                 <div key={proj.id} className="custom-card-wrapper">
                   <Card title={proj.title} subtitle={`Tech Stack: ${proj.technologies}`}>
                     <p style={{ ...styles.cardBodyText, marginBottom: "16px" }}>{proj.description}</p>
+                    {proj.github_url && <a href={proj.github_url} target="_blank" rel="noreferrer">GitHub</a>}
+                    {proj.live_url && <a href={proj.live_url} target="_blank" rel="noreferrer">Live Demo</a>}
                     
                     <div style={styles.projectGalleryRow}>
                       {safeParseUrls(proj.image_urls).map((url, idx) => (
@@ -216,6 +242,7 @@ export const PortfolioView = () => {
                           alt="Project Showcase Asset" 
                           className="gallery-image"
                           style={styles.showcaseAssetCard}
+                          onClick={() => setActiveLightboxImg(url)}
                         />
                       ))}
                     </div>
@@ -226,7 +253,7 @@ export const PortfolioView = () => {
           </section>
         )}
 
-        {/* 6. QUALIFICATIONS GROUP */}
+        {/* 6. QUALIFICATIONS GROUP (EDUCATION & CERTIFICATIONS WITH IMAGE SUPPORT) */}
         <div style={styles.qualificationsSplitRow}>
           {store.education.length > 0 && (
             <div style={styles.splitColumn}>
@@ -245,12 +272,29 @@ export const PortfolioView = () => {
 
           {store.certifications.length > 0 && (
             <div style={styles.splitColumn}>
-              <h2 style={styles.sectionTitle}>Certifications</h2>
+              <h2 style={styles.sectionTitle}>Certifications & Documents</h2>
               <div style={styles.verticalStack}>
                 {store.certifications.map(cert => (
                   <div key={cert.id} style={styles.compactCard}>
-                    <strong style={styles.cardHeading}>{cert.title}</strong>
-                    <span style={styles.cardSubheading}>{cert.organization}</span>
+                    <div style={{ marginBottom: "12px", display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+                      <div>
+                        <strong style={styles.cardHeading}>{cert.title}</strong>
+                        <span style={styles.cardSubheading}>{cert.organization}</span>
+                      </div>
+                      
+                      {/* Interactive Premium Light Button to review verifying document / external resource links directly */}
+                      <button 
+                        type="button" 
+                        className="inline-view-btn"
+                        style={styles.inlineViewBtn} 
+                        onClick={() => handleViewDocument(cert)}
+                      >
+                        View Document
+                      </button>
+                    </div>
+
+                    {/* Integrated Certificate Document Viewer */}
+                    {/*  */}
                   </div>
                 ))}
               </div>
@@ -290,18 +334,28 @@ export const PortfolioView = () => {
         )}
 
       </div>
+
+      {/* GLOBAL SCREENSHOT & DOCUMENT LIGHTBOX MODAL */}
+      {activeLightboxImg && (
+        <div style={styles.lightboxOverlay} onClick={() => setActiveLightboxImg(null)}>
+          <div style={styles.lightboxContent} onClick={(e) => e.stopPropagation()}>
+            <button style={styles.lightboxCloseBtn} onClick={() => setActiveLightboxImg(null)}>×</button>
+            <img src={activeLightboxImg} alt="High resolution view" style={styles.lightboxImage} />
+          </div>
+        </div>
+      )}
     </>
   );
 };
 
-// Premium Light Colors Engine Configuration
+// Colors Engine Styles Configuration Grid
 const styles = {
   canvas: {
     maxWidth: "1140px",
     margin: "40px auto",
     padding: "20px 24px",
-    backgroundColor: "#f8fafc", // Clear Slate White
-    color: "#334155", // Deep slate body text
+    backgroundColor: "#f8fafc", 
+    color: "#334155", 
     minHeight: "100vh",
   },
   loadingContainer: {
@@ -341,7 +395,7 @@ const styles = {
   avatarFrame: {
     width: "130px",
     height: "130px",
-    borderRadius: "24px", // Rounded modern corners
+    borderRadius: "24px", 
     objectFit: "cover",
     border: "3px solid #ffffff",
     boxShadow: "0 8px 25px rgba(148, 163, 184, 0.25)",
@@ -354,12 +408,12 @@ const styles = {
     fontWeight: "800",
     margin: "0 0 6px 0",
     letterSpacing: "-0.75px",
-    color: "#0f172a", // Dark charcoal primary
+    color: "#0f172a", 
   },
   profileTitle: {
     fontSize: "1.25rem",
     fontWeight: "600",
-    color: "#3b82f6", // Vibrant Ocean Blue Core Accent
+    color: "#3b82f6", 
     margin: "0 0 14px 0",
     letterSpacing: "0.3px",
   },
@@ -412,12 +466,13 @@ const styles = {
   },
   introSummary: {
     fontSize: "1.15rem",
+    height: "auto",
     lineHeight: "1.75",
     color: "#334155",
     marginBottom: "24px",
   },
   objectiveCallout: {
-    background: "#f0fdf4", // Light mint green tint
+    background: "#f0fdf4", 
     borderLeft: "4px solid #10b981",
     padding: "20px 24px",
     borderRadius: "0 16px 16px 0",
@@ -529,6 +584,53 @@ const styles = {
     fontSize: "0.85rem",
     fontWeight: "500",
   },
+  certDocumentRow: {
+    display: "flex",
+    flexWrap: "wrap",
+    gap: "10px",
+    marginTop: "8px"
+  },
+  docWrapper: {
+    position: "relative",
+    width: "90px",
+    height: "65px",
+    borderRadius: "8px",
+    overflow: "hidden",
+    cursor: "pointer",
+    border: "1px solid #cbd5e1"
+  },
+  certDocumentPreview: {
+    width: "100%",
+    height: "100%",
+    objectFit: "cover",
+  },
+  docHoverOverlay: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    background: "rgba(15, 23, 42, 0.4)",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    opacity: 0,
+    transition: "opacity 0.2s ease",
+    ":hover": {
+      opacity: 1
+    }
+  },
+  inlineViewBtn: {
+    background: "#3b82f6",
+    color: "#ffffff",
+    border: "none",
+    borderRadius: "8px",
+    padding: "6px 14px",
+    fontSize: "0.82rem",
+    fontWeight: "600",
+    cursor: "pointer",
+    outline: "none",
+  },
   languagesCapsuleWrap: {
     display: "flex",
     flexWrap: "wrap",
@@ -575,5 +677,44 @@ const styles = {
     color: "#334155",
     fontSize: "0.88rem",
     fontWeight: "500",
+  },
+  lightboxOverlay: {
+    position: "fixed",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: "rgba(15, 23, 42, 0.85)",
+    backdropFilter: "blur(8px)",
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center",
+    zIndex: 9999,
+    padding: "20px"
+  },
+  lightboxContent: {
+    position: "relative",
+    maxWidth: "90%",
+    maxHeight: "90vh",
+    backgroundColor: "#ffffff",
+    padding: "10px",
+    borderRadius: "16px",
+    boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.5)"
+  },
+  lightboxImage: {
+    maxWidth: "100%",
+    maxHeight: "80vh",
+    objectFit: "contain",
+    borderRadius: "8px"
+  },
+  lightboxCloseBtn: {
+    position: "absolute",
+    top: "-45px",
+    right: "0px",
+    background: "none",
+    border: "none",
+    color: "#ffffff",
+    fontSize: "2.5rem",
+    cursor: "pointer"
   }
 };
