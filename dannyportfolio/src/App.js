@@ -1,18 +1,19 @@
-import React, { useState } from "react";
+import React from "react";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { PortfolioView } from "./features/PortfolioView";
 import { DashboardView } from "./features/DashboardView";
 
 function App() {
-  const [view, setView] = useState("portfolio");
-
   return (
-    <div>
-      <nav style={{ background: "#111", padding: "15px", display: "flex", gap: "20px", justifyContent: "center" }}>
-        <button onClick={() => setView("portfolio")} style={{ background: "transparent", color: view === "portfolio" ? "#1a73e8" : "#fff", border: "none", font: "inherit", cursor: "pointer", fontWeight: "bold" }}>Portfolio App</button>
-        <button onClick={() => setView("dashboard")} style={{ background: "transparent", color: view === "dashboard" ? "#1a73e8" : "#fff", border: "none", font: "inherit", cursor: "pointer", fontWeight: "bold" }}>Admin Engine Dashboard</button>
-      </nav>
-      {view === "portfolio" ? <PortfolioView /> : <DashboardView />}
-    </div>
+    <BrowserRouter>
+      <Routes>
+        {/* Shows the portfolio view when visiting http://localhost:5173/ */}
+        <Route path="/" element={<PortfolioView />} />
+        
+        {/* Shows the administrative dashboard when visiting http://localhost:5173/dashboard */}
+        <Route path="/dashboard" element={<DashboardView />} />
+      </Routes>
+    </BrowserRouter>
   );
 }
 

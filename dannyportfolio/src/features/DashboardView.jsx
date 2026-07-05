@@ -8,6 +8,7 @@ import { ExperienceForm } from "../components/forms/ExperienceForm";
 import { CertificationForm } from "../components/forms/CertificationForm";
 import { LanguageForm } from "../components/forms/LanguageForm";
 import { ReferenceForm } from "../components/forms/ReferenceForm";
+import { OtherDocumentForm } from "../components/forms/OtherDocumentForm";
 
 import { 
   FaUser, 
@@ -38,6 +39,7 @@ export const DashboardView = () => {
       certifications: API.CertificationsService,
       languages: API.LanguagesService,
       references: API.ReferencesService,
+      otherdocuments: API.OtherDocumentsService,
     };
     return serviceMap[activeTab];
   };
@@ -87,15 +89,18 @@ export const DashboardView = () => {
   };
 
   const handleViewDocument = (rec) => {
-    if (rec.certificate_url && typeof rec.certificate_url === "string" && rec.certificate_url.startsWith("http")) {
-      window.open(rec.certificate_url, "_blank", "noopener,noreferrer");
+    // Shared fallback logic for both Certifications and Other Documents
+    const documentUrl = rec.certificate_url || rec.document_url || rec.file_url;
+    
+    if (documentUrl && typeof documentUrl === "string" && documentUrl.startsWith("http")) {
+      window.open(documentUrl, "_blank", "noopener,noreferrer");
       return;
     }
     if (rec.image_urls && Array.isArray(rec.image_urls) && rec.image_urls.length > 0) {
       window.open(rec.image_urls[0], "_blank", "noopener,noreferrer");
       return;
     }
-    alert("No document file or external verification link available for this certification.");
+    alert("No document file or external verification link available for this record.");
   };
 
   const renderRecordDetails = (rec) => {
@@ -105,7 +110,6 @@ export const DashboardView = () => {
           <div className="profile-display-card">
             <div className="profile-card-top">
               <div className="profile-avatar-wrapper">
-                {/* Fixed column key mapping profile_image_url */}
                 {rec.profile_image_url ? (
                   <img src={rec.profile_image_url} alt="Profile" className="profile-avatar-img" />
                 ) : (
@@ -231,12 +235,37 @@ export const DashboardView = () => {
             <p className="detail-sub">📞 {rec.phone}</p>
           </>
         );
+      case "otherdocuments":
+        return (
+          <>
+            <strong>{rec.document_name || rec.title || "Untitled Document"}</strong>
+            {rec.description && <p>{rec.description}</p>}
+            <button 
+              type="button" 
+              className="action-btn view-doc-btn" 
+              onClick={() => handleViewDocument(rec)}
+            >
+              <FaFileAlt style={{ marginRight: '6px' }} /> View Document
+            </button>
+          </>
+        );
       default:
         return null;
     }
   };
 
-  const tabsList = ["profile", "skills", "education", "experience", "projects", "certifications", "languages", "references"];
+  // Added "otherdocuments" to the list so it updates dynamically in the navigation panel
+  const tabsList = [
+    "profile", 
+    "skills", 
+    "education", 
+    "experience", 
+    "projects", 
+    "certifications", 
+    "languages", 
+    "references",
+    "otherdocuments"
+  ];
 
   return (
     <div className="dashboard-container">
@@ -251,7 +280,8 @@ export const DashboardView = () => {
               onClick={() => setActiveTab(tab)} 
               className={`sidebar-tab-btn ${activeTab === tab ? "active" : ""}`}
             >
-              {tab.charAt(0).toUpperCase() + tab.slice(1)}
+              {/* Fallback styling check for clean formatting of long strings like "otherdocuments" */}
+              {tab === "otherdocuments" ? "Other Documents" : tab.charAt(0).toUpperCase() + tab.slice(1)}
             </button>
           ))}
         </nav>
@@ -259,7 +289,9 @@ export const DashboardView = () => {
 
       <div className="dashboard-main">
         <div className="main-header">
-          <h2>Manage {activeTab.charAt(0).toUpperCase() + activeTab.slice(1)} Records</h2>
+          <h2>
+            Manage {activeTab === "otherdocuments" ? "Other Documents" : activeTab.charAt(0).toUpperCase() + activeTab.slice(1)} Records
+          </h2>
         </div>
         
         <div className="dashboard-section form-section">
@@ -280,6 +312,7 @@ export const DashboardView = () => {
           {activeTab === "certifications" && <CertificationForm key={editingRecord?.id || "new"} initialData={editingRecord || {}} onSubmit={handleFormSubmit} />}
           {activeTab === "languages" && <LanguageForm key={editingRecord?.id || "new"} initialData={editingRecord || {}} onSubmit={handleFormSubmit} />}
           {activeTab === "references" && <ReferenceForm key={editingRecord?.id || "new"} initialData={editingRecord || {}} onSubmit={handleFormSubmit} />}
+          {activeTab === "otherdocuments" && <OtherDocumentForm key={editingRecord?.id || "new"} initialData={editingRecord || {}} onSubmit={handleFormSubmit} />}
         </div>
 
         <div className="dashboard-section records-section">

@@ -46,3 +46,4 @@ export const ProjectsService = createCrudService("/projects");
 export const CertificationsService = createCrudService("/certifications");
 export const LanguagesService = createCrudService("/languages");
 export const ReferencesService = createCrudService("/references");
+export const OtherDocumentsService = createCrudService("/otherdocuments");
