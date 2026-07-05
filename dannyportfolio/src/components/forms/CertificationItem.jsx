@@ -10,7 +10,7 @@ export const CertificationItem = ({ cert }) => {
     // If a file was uploaded, point the new tab directly to the backend view route
     else if (cert._id || cert.id) {
       const id = cert._id || cert.id;
-      window.open(`http://localhost:5000/api/certifications/${id}/view`, "_blank");
+      window.open(`dany-portfolio-backend-production.up.railway.app/api/certifications/${id}/view`, "_blank");
     } else {
       alert("No document or verification link available.");
     }
