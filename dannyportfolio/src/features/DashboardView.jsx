@@ -9,6 +9,7 @@ import { CertificationForm } from "../components/forms/CertificationForm";
 import { LanguageForm } from "../components/forms/LanguageForm";
 import { ReferenceForm } from "../components/forms/ReferenceForm";
 import { OtherDocumentForm } from "../components/forms/OtherDocumentForm";
+import { Link } from "react-router-dom";
 
 import { 
   FaUser, 
@@ -272,7 +273,10 @@ export const DashboardView = () => {
       <div className="dashboard-sidebar">
         <div className="sidebar-brand">
           <h3>Control Console</h3>
-        </div>
+        </div> 
+        <Link to="/analytics">
+  Dashboard
+</Link>
         <nav className="sidebar-nav">
           {tabsList.map(tab => (
             <button 
