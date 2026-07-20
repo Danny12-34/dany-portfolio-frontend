@@ -11,19 +11,19 @@ import { ReferenceForm } from "../components/forms/ReferenceForm";
 import { OtherDocumentForm } from "../components/forms/OtherDocumentForm";
 import { Link } from "react-router-dom";
 
-import { 
-  FaUser, 
-  FaBriefcase, 
-  FaHeading, 
-  FaEnvelope, 
-  FaPhone, 
-  FaMapMarkerAlt, 
-  FaGithub, 
-  FaLinkedin, 
-  FaFileAlt 
+import {
+  FaUser,
+  FaBriefcase,
+  FaHeading,
+  FaEnvelope,
+  FaPhone,
+  FaMapMarkerAlt,
+  FaGithub,
+  FaLinkedin,
+  FaFileAlt
 } from "react-icons/fa";
 
-import "./DashboardView.css"; 
+import "./DashboardView.css";
 
 export const DashboardView = () => {
   const [activeTab, setActiveTab] = useState("profile");
@@ -92,7 +92,7 @@ export const DashboardView = () => {
   const handleViewDocument = (rec) => {
     // Shared fallback logic for both Certifications and Other Documents
     const documentUrl = rec.certificate_url || rec.document_url || rec.file_url;
-    
+
     if (documentUrl && typeof documentUrl === "string" && documentUrl.startsWith("http")) {
       window.open(documentUrl, "_blank", "noopener,noreferrer");
       return;
@@ -131,7 +131,7 @@ export const DashboardView = () => {
                 )}
               </div>
             </div>
-            
+
             <div className="profile-contact-grid">
               <span className="contact-item">
                 <FaEnvelope className="inline-icon" /> {rec.email || "N/A"}
@@ -212,9 +212,9 @@ export const DashboardView = () => {
           <>
             <strong>{rec.title}</strong>
             <p>{rec.organization}</p>
-            <button 
-              type="button" 
-              className="action-btn view-doc-btn" 
+            <button
+              type="button"
+              className="action-btn view-doc-btn"
               onClick={() => handleViewDocument(rec)}
             >
               <FaFileAlt style={{ marginRight: '6px' }} /> View Document
@@ -241,9 +241,9 @@ export const DashboardView = () => {
           <>
             <strong>{rec.document_name || rec.title || "Untitled Document"}</strong>
             {rec.description && <p>{rec.description}</p>}
-            <button 
-              type="button" 
-              className="action-btn view-doc-btn" 
+            <button
+              type="button"
+              className="action-btn view-doc-btn"
               onClick={() => handleViewDocument(rec)}
             >
               <FaFileAlt style={{ marginRight: '6px' }} /> View Document
@@ -257,13 +257,13 @@ export const DashboardView = () => {
 
   // Added "otherdocuments" to the list so it updates dynamically in the navigation panel
   const tabsList = [
-    "profile", 
-    "skills", 
-    "education", 
-    "experience", 
-    "projects", 
-    "certifications", 
-    "languages", 
+    "profile",
+    "skills",
+    "education",
+    "experience",
+    "projects",
+    "certifications",
+    "languages",
     "references",
     "otherdocuments"
   ];
@@ -273,15 +273,18 @@ export const DashboardView = () => {
       <div className="dashboard-sidebar">
         <div className="sidebar-brand">
           <h3>Control Console</h3>
-        </div> 
+        </div>
         <Link to="/analytics">
-  Dashboard
-</Link>
+          Analytisis
+        </Link>
+        <Link to="/analyticsDash">
+          Dashboard
+        </Link>
         <nav className="sidebar-nav">
           {tabsList.map(tab => (
-            <button 
-              key={tab} 
-              onClick={() => setActiveTab(tab)} 
+            <button
+              key={tab}
+              onClick={() => setActiveTab(tab)}
               className={`sidebar-tab-btn ${activeTab === tab ? "active" : ""}`}
             >
               {/* Fallback styling check for clean formatting of long strings like "otherdocuments" */}
@@ -297,7 +300,7 @@ export const DashboardView = () => {
             Manage {activeTab === "otherdocuments" ? "Other Documents" : activeTab.charAt(0).toUpperCase() + activeTab.slice(1)} Records
           </h2>
         </div>
-        
+
         <div className="dashboard-section form-section">
           <div className="section-header">
             <h4>{editingRecord ? "⚠️ Edit Entry Mode" : "Append New Entry"}</h4>

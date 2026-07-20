@@ -13,7 +13,6 @@ export default function AnalyticsDashboard() {
     const unsubscribe = onSnapshot(docRef, (docSnap) => {
       if (docSnap.exists()) {
         setMetrics(docSnap.data());
-        // Trigger a visual pulse effect when data updates
         setLivePulse(false);
         setTimeout(() => setLivePulse(true), 300);
       } else {
@@ -32,7 +31,9 @@ export default function AnalyticsDashboard() {
     return (
       <div style={styles.loaderContainer}>
         <div style={styles.spinner}></div>
-        <p style={{ marginTop: "16px", color: "#64748b", fontWeight: "500" }}>Connecting to live data stream...</p>
+        <p style={{ marginTop: "16px", color: "#94a3b8", fontWeight: "500", fontSize: "0.95rem" }}>
+          Establishing secure stream...
+        </p>
       </div>
     );
   }
@@ -41,9 +42,9 @@ export default function AnalyticsDashboard() {
     return (
       <div style={styles.errorContainer}>
         <div style={styles.errorCard}>
-          <h3 style={{ color: "#0f172a", marginBottom: "8px" }}>Analytics System Uninitialized</h3>
-          <p style={{ color: "#64748b", fontSize: "0.95rem", lineHeight: "1.6" }}>
-            Please ensure the document path <code style={styles.code}>analytics/global_metrics</code> is correctly provisioned in your Firestore instance.
+          <h3 style={{ color: "#0f172a", marginBottom: "12px", fontWeight: "600" }}>Analytics Stream Offline</h3>
+          <p style={{ color: "#64748b", fontSize: "0.95rem", lineHeight: "1.6", margin: 0 }}>
+            Ensure the document path <code style={styles.code}>analytics/global_metrics</code> is initialized in your Firestore panel.
           </p>
         </div>
       </div>
@@ -53,95 +54,122 @@ export default function AnalyticsDashboard() {
   const total = metrics.totalVisitors || 1;
 
   return (
-    <div style={styles.container}>
-      {/* Top Professional Navbar/Header */}
-      <header style={styles.header}>
-        <div>
-          <h1 style={styles.title}>System Analytics</h1>
-          <p style={styles.subtitle}>
-            Real-time platform metrics for{" "}
-            <a href="https://dannyportfolio.gkminvest.com" target="_blank" rel="noopener noreferrer" style={styles.link}>
-              dannyportfolio.gkminvest.com
-            </a>
-          </p>
-        </div>
-        
-        {/* Real-time Heartbeat Badge */}
-        <div style={styles.badge}>
-          <span style={{ ...styles.pulseDot, opacity: livePulse ? 1 : 0.4 }}></span>
-          <span style={styles.badgeText}>Live Feed Active</span>
-        </div>
-      </header>
+    <div style={styles.pageWrapper}>
+      {/* Premium Dark Top Section */}
+      <div style={styles.topHeroSection}>
+        <div style={styles.internalContainer}>
+          <header style={styles.header}>
+            <div>
+              <h1 style={styles.title}>System Analytics</h1>
+              <p style={styles.subtitle}>
+                Real-time performance tracking for{" "}
+                <a href="https://dannyportfolio.gkminvest.com" target="_blank" rel="noopener noreferrer" style={styles.link}>
+                  dannyportfolio.gkminvest.com
+                </a>
+              </p>
+            </div>
+            
+            <div style={styles.badge}>
+              <span style={{ ...styles.pulseDot, opacity: livePulse ? 1 : 0.3 }}></span>
+              <span style={styles.badgeText}>Live Sync Active</span>
+            </div>
+          </header>
 
-      {/* Main Stats Overview Grid */}
-      <section style={styles.heroSection}>
-        <div style={styles.heroCard}>
-          <div style={styles.heroMeta}>
-            <p style={styles.heroLabel}>Total Accumulated Traffic</p>
-            <svg style={styles.heroIcon} fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-            </svg>
-          </div>
-          <h2 style={styles.heroNumber}>{total.toLocaleString()}</h2>
-          <p style={styles.heroSubtext}>Unique sessions recorded across all endpoints</p>
-        </div>
-      </section>
-
-      {/* Breakdown Metrics Grid */}
-      <div style={styles.grid}>
-        {/* Device Segmentation Card */}
-        <div style={styles.card}>
-          <div style={styles.cardHeader}>
-            <h3 style={styles.cardTitle}>📱 Device Segmentation</h3>
-          </div>
-          <div style={styles.cardBody}>
-            <div style={styles.deviceRow}>
-              <div style={styles.deviceInfo}>
-                <span style={styles.deviceLabel}>Desktop</span>
-                <span style={styles.deviceCount}>{metrics.devices?.desktop || 0}</span>
-              </div>
-              <div style={styles.progressBg}>
-                <div style={{ ...styles.progressFill, width: `${Math.round(((metrics.devices?.desktop || 0) / total) * 100)}%` }}></div>
+          {/* Overlapping Main Counter Row */}
+          <div style={styles.heroCard}>
+            <div style={styles.heroMeta}>
+              <span style={styles.heroLabel}>Total Unique Visitors</span>
+              <div style={styles.iconCircle}>
+                <svg style={styles.heroIcon} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                </svg>
               </div>
             </div>
-
-            <div style={styles.deviceRow}>
-              <div style={styles.deviceInfo}>
-                <span style={styles.deviceLabel}>Mobile</span>
-                <span style={styles.deviceCount}>{metrics.devices?.mobile || 0}</span>
-              </div>
-              <div style={styles.progressBg}>
-                <div style={{ ...styles.progressFill, width: `${Math.round(((metrics.devices?.mobile || 0) / total) * 100)}%` }}></div>
-              </div>
-            </div>
-
-            <div style={styles.deviceRow}>
-              <div style={styles.deviceInfo}>
-                <span style={styles.deviceLabel}>Tablet</span>
-                <span style={styles.deviceCount}>{metrics.devices?.tablet || 0}</span>
-              </div>
-              <div style={styles.progressBg}>
-                <div style={{ ...styles.progressFill, width: `${Math.round(((metrics.devices?.tablet || 0) / total) * 100)}%` }}></div>
-              </div>
+            <h2 style={styles.heroNumber}>{total.toLocaleString()}</h2>
+            <div style={styles.heroFooter}>
+              <span style={styles.trendIndicator}>⚡ Live updates</span>
+              <span style={styles.heroSubtext}>Sessions recorded from client components</span>
             </div>
           </div>
         </div>
+      </div>
 
-        {/* Console Redirection Card */}
-        <div style={styles.card}>
-          <div style={styles.cardHeader}>
-            <h3 style={styles.cardTitle}>🌐 Deep Demographics & Behavior</h3>
-          </div>
-          <div style={styles.cardBodyContainer}>
-            <p style={styles.cardDescription}>
-              Advanced user path mapping, regional geolocation indexes, real-time conversion rates, and session durations are securely routed through your enterprise GA4 instance.
-            </p>
-            <a href="https://analytics.google.com/" target="_blank" rel="noopener noreferrer" style={styles.button}>
-              Launch Google Analytics Console
-              <svg style={styles.btnIcon} fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-              </svg>
-            </a>
+      {/* Main Content Workspace */}
+      <div style={styles.bottomWorkspace}>
+        <div style={styles.internalContainer}>
+          <div style={styles.grid}>
+            
+            {/* Segmentation Card */}
+            <div style={styles.card}>
+              <div style={styles.cardHeader}>
+                <h3 style={styles.cardTitle}>Device Segmentation</h3>
+                <p style={styles.cardMeta}>Platform traffic distribution layout</p>
+              </div>
+              <div style={styles.cardBody}>
+                {/* Desktop Row */}
+                <div style={styles.deviceRow}>
+                  <div style={styles.deviceInfo}>
+                    <span style={styles.deviceLabel}>💻 Desktop Platform</span>
+                    <span style={styles.deviceCount}>
+                      {metrics.devices?.desktop || 0}{" "}
+                      <span style={styles.pctText}>({Math.round(((metrics.devices?.desktop || 0) / total) * 100)}%)</span>
+                    </span>
+                  </div>
+                  <div style={styles.progressBg}>
+                    <div style={{ ...styles.progressFill, width: `${Math.round(((metrics.devices?.desktop || 0) / total) * 100)}%` }}></div>
+                  </div>
+                </div>
+
+                {/* Mobile Row */}
+                <div style={styles.deviceRow}>
+                  <div style={styles.deviceInfo}>
+                    <span style={styles.deviceLabel}>📱 Mobile Devices</span>
+                    <span style={styles.deviceCount}>
+                      {metrics.devices?.mobile || 0}{" "}
+                      <span style={styles.pctText}>({Math.round(((metrics.devices?.mobile || 0) / total) * 100)}%)</span>
+                    </span>
+                  </div>
+                  <div style={styles.progressBg}>
+                    <div style={{ ...styles.progressFill, width: `${Math.round(((metrics.devices?.mobile || 0) / total) * 100)}%` }}></div>
+                  </div>
+                </div>
+
+                {/* Tablet Row */}
+                <div style={styles.deviceRow}>
+                  <div style={styles.deviceInfo}>
+                    <span style={styles.deviceLabel}>📟 Tablet Endpoints</span>
+                    <span style={styles.deviceCount}>
+                      {metrics.devices?.tablet || 0}{" "}
+                      <span style={styles.pctText}>({Math.round(((metrics.devices?.tablet || 0) / total) * 100)}%)</span>
+                    </span>
+                  </div>
+                  <div style={styles.progressBg}>
+                    <div style={{ ...styles.progressFill, width: `${Math.round(((metrics.devices?.tablet || 0) / total) * 100)}%` }}></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Demographics Card */}
+            <div style={styles.card}>
+              <div style={styles.cardHeader}>
+                <h3 style={styles.cardTitle}>Demographics & Behaviors</h3>
+                <p style={styles.cardMeta}>Advanced server telemetry metrics</p>
+              </div>
+              <div style={styles.cardBodyFlex}>
+                <p style={styles.cardDescription}>
+                  Granular country routing charts, user acquisition mediums, dynamic retention grids, and bounce logs are aggregated securely inside your central Google Analytics architecture.
+                </p>
+                <a href="https://analytics.google.com/" target="_blank" rel="noopener noreferrer" style={styles.button}>
+                  Launch Analytics Console
+                  <svg style={styles.btnIcon} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                  </svg>
+                </a>
+              </div>
+            </div>
+
           </div>
         </div>
       </div>
@@ -149,15 +177,27 @@ export default function AnalyticsDashboard() {
   );
 }
 
-// 🏢 Modern Premium CSS-in-JS Architecture Style Specifications
+// 🏢 High-Fidelity UI Styling Specification 
 const styles = {
-  container: {
-    maxWidth: "1140px",
-    margin: "0 auto",
-    padding: "40px 24px",
-    fontFamily: "Inter, system-ui, -apple-system, sans-serif",
+  pageWrapper: {
     backgroundColor: "#f8fafc",
     minHeight: "100vh",
+    fontFamily: "'Inter', system-ui, -apple-system, sans-serif",
+  },
+  topHeroSection: {
+    backgroundColor: "#0f172a",
+    padding: "60px 0 120px 0",
+    color: "#ffffff",
+  },
+  bottomWorkspace: {
+    marginTop: "-80px",
+    paddingBottom: "60px",
+  },
+  internalContainer: {
+    maxWidth: "1100px",
+    margin: "0 auto",
+    padding: "0 24px",
+    boxSizing: "border-box",
   },
   loaderContainer: {
     display: "flex",
@@ -165,176 +205,206 @@ const styles = {
     justifyContent: "center",
     alignItems: "center",
     height: "100vh",
-    backgroundColor: "#f8fafc",
-    fontFamily: "Inter, system-ui, sans-serif"
+    backgroundColor: "#0f172a",
+    fontFamily: "'Inter', system-ui, sans-serif"
   },
   spinner: {
-    width: "40px",
-    height: "40px",
-    border: "3px solid #e2e8f0",
-    borderTop: "3px solid #4f46e5",
+    width: "36px",
+    height: "36px",
+    border: "3px solid #1e293b",
+    borderTop: "3px solid #38bdf8",
     borderRadius: "50%",
     animation: "spin 0.8s linear infinite"
   },
   header: {
     display: "flex",
     justifyContent: "space-between",
-    alignItems: "flex-start",
-    marginBottom: "32px",
+    alignItems: "center",
+    marginBottom: "40px",
     flexWrap: "wrap",
-    gap: "16px"
+    gap: "20px"
   },
   title: {
-    fontSize: "1.75rem",
-    fontWeight: "700",
-    color: "#0f172a",
-    letterSpacing: "-0.02em",
-    margin: "0 0 6px 0"
+    fontSize: "2rem",
+    fontWeight: "800",
+    letterSpacing: "-0.025em",
+    margin: "0 0 8px 0",
+    color: "#ffffff"
   },
   subtitle: {
     fontSize: "0.95rem",
-    color: "#64748b",
+    color: "#94a3b8",
     margin: 0
   },
   link: {
-    color: "#4f46e5",
+    color: "#38bdf8",
     textDecoration: "none",
     fontWeight: "500",
-    borderBottom: "1px solid transparent",
-    transition: "border-color 0.2s ease"
   },
   badge: {
     display: "flex",
     alignItems: "center",
-    backgroundColor: "#ffffff",
-    border: "1px solid #e2e8f0",
-    padding: "8px 14px",
+    backgroundColor: "rgba(255, 255, 255, 0.05)",
+    border: "1px solid rgba(255, 255, 255, 0.1)",
+    padding: "8px 16px",
     borderRadius: "9999px",
-    boxShadow: "0 1px 2px rgba(0,0,0,0.02)"
+    backdropFilter: "blur(4px)"
   },
   pulseDot: {
     width: "8px",
     height: "8px",
-    backgroundColor: "#10b981",
+    backgroundColor: "#34d399",
     borderRadius: "50%",
-    marginRight: "8px",
+    marginRight: "10px",
     display: "inline-block",
-    boxShadow: "0 0 8px #10b981",
+    boxShadow: "0 0 12px #34d399",
     transition: "opacity 0.2s ease"
   },
   badgeText: {
     fontSize: "0.85rem",
     fontWeight: "600",
-    color: "#334155"
-  },
-  heroSection: {
-    marginBottom: "24px"
+    color: "#cbd5e1",
+    letterSpacing: "0.02em"
   },
   heroCard: {
     backgroundColor: "#ffffff",
-    borderRadius: "16px",
+    borderRadius: "20px",
     padding: "32px",
     border: "1px solid #e2e8f0",
-    boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.03), 0 2px 4px -1px rgba(0, 0, 0, 0.02)"
+    boxShadow: "0 20px 25px -5px rgba(0, 0, 0, 0.05), 0 10px 10px -5px rgba(0, 0, 0, 0.02)",
+    color: "#0f172a"
   },
   heroMeta: {
     display: "flex",
     justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: "12px"
+    marginBottom: "6px"
   },
   heroLabel: {
-    fontSize: "0.85rem",
+    fontSize: "0.9rem",
     fontWeight: "600",
     color: "#64748b",
     textTransform: "uppercase",
     letterSpacing: "0.05em",
-    margin: 0
+  },
+  iconCircle: {
+    backgroundColor: "#f0fdf4",
+    padding: "10px",
+    borderRadius: "12px",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center"
   },
   heroIcon: {
-    width: "20px",
-    height: "20px",
-    color: "#94a3b8"
+    width: "22px",
+    height: "22px",
+    color: "#16a34a"
   },
   heroNumber: {
-    fontSize: "3.5rem",
+    fontSize: "4rem",
     fontWeight: "800",
+    margin: "0 0 12px 0",
+    letterSpacing: "-0.04em",
     color: "#0f172a",
-    margin: 0,
-    letterSpacing: "-0.03em"
+    lineHeight: 1
+  },
+  heroFooter: {
+    display: "flex",
+    alignItems: "center",
+    gap: "12px",
+    borderTop: "1px solid #f1f5f9",
+    paddingTop: "16px"
+  },
+  trendIndicator: {
+    fontSize: "0.85rem",
+    fontWeight: "600",
+    color: "#16a34a",
+    backgroundColor: "#dcfce7",
+    padding: "2px 8px",
+    borderRadius: "4px"
   },
   heroSubtext: {
-    fontSize: "0.875rem",
-    color: "#94a3b8",
-    margin: "8px 0 0 0"
+    fontSize: "0.85rem",
+    color: "#94a3b8"
   },
   grid: {
     display: "grid",
-    gridTemplateColumns: "repeat(auto-fit, minmax(450px, 1fr))",
-    gap: "24px"
+    gridTemplateColumns: "repeat(auto-fit, minmax(340px, 1fr))",
+    gap: "28px"
   },
   card: {
     backgroundColor: "#ffffff",
-    borderRadius: "16px",
+    borderRadius: "20px",
     border: "1px solid #e2e8f0",
-    boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.03), 0 2px 4px -1px rgba(0, 0, 0, 0.02)",
-    overflow: "hidden"
+    boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.02), 0 2px 4px -1px rgba(0, 0, 0, 0.01)",
+    overflow: "hidden",
+    display: "flex",
+    flexDirection: "column"
   },
   cardHeader: {
-    padding: "20px 24px",
-    borderBottom: "1px solid #f1f5f9"
+    padding: "24px 28px 0 28px",
   },
   cardTitle: {
-    fontSize: "1.05rem",
-    fontWeight: "600",
-    color: "#1e293b",
-    margin: 0
+    fontSize: "1.15rem",
+    fontWeight: "700",
+    color: "#0f172a",
+    margin: "0 0 4px 0"
+  },
+  cardMeta: {
+    margin: 0,
+    fontSize: "0.85rem",
+    color: "#94a3b8"
   },
   cardBody: {
-    padding: "24px"
+    padding: "28px",
+    flexGrow: 1
   },
-  cardBodyContainer: {
-    padding: "24px",
+  cardBodyFlex: {
+    padding: "28px",
     display: "flex",
     flexDirection: "column",
     justifyContent: "space-between",
-    height: "calc(100% - 72px)",
-    boxSizing: "border-box"
+    flexGrow: 1
   },
   cardDescription: {
     fontSize: "0.95rem",
     color: "#64748b",
     lineHeight: "1.6",
-    margin: "0 0 24px 0"
+    margin: "0 0 32px 0"
   },
   deviceRow: {
-    marginBottom: "20px",
+    marginBottom: "24px",
   },
   deviceInfo: {
     display: "flex",
     justifyContent: "space-between",
-    marginBottom: "8px",
+    marginBottom: "10px",
     fontSize: "0.9rem"
   },
   deviceLabel: {
-    color: "#475569",
-    fontWeight: "500"
+    color: "#334155",
+    fontWeight: "600"
   },
   deviceCount: {
     color: "#0f172a",
-    fontWeight: "600"
+    fontWeight: "700"
+  },
+  pctText: {
+    color: "#64748b",
+    fontWeight: "400",
+    fontSize: "0.85rem"
   },
   progressBg: {
     width: "100%",
     backgroundColor: "#f1f5f9",
     borderRadius: "9999px",
-    height: "8px"
+    height: "10px"
   },
   progressFill: {
-    backgroundColor: "#4f46e5",
+    backgroundColor: "#3b82f6",
     height: "100%",
     borderRadius: "9999px",
-    transition: "width 0.5s ease-out"
+    transition: "width 0.6s cubic-bezier(0.4, 0, 0.2, 1)"
   },
   button: {
     display: "inline-flex",
@@ -343,14 +413,17 @@ const styles = {
     backgroundColor: "#0f172a",
     color: "#ffffff",
     textDecoration: "none",
-    padding: "14px 20px",
-    borderRadius: "10px",
+    padding: "14px 24px",
+    borderRadius: "12px",
     fontSize: "0.9rem",
     fontWeight: "600",
-    transition: "background-color 0.15s ease",
-    gap: "8px",
+    boxShadow: "0 1px 2px rgba(0, 0, 0, 0.05)",
+    transition: "all 0.15s ease",
+    gap: "10px",
     border: "none",
-    cursor: "pointer"
+    cursor: "pointer",
+    width: "100%",
+    boxSizing: "border-box"
   },
   btnIcon: {
     width: "16px",
@@ -361,21 +434,22 @@ const styles = {
     justifyContent: "center",
     alignItems: "center",
     minHeight: "100vh",
-    padding: "24px"
+    backgroundColor: "#f8fafc"
   },
   errorCard: {
     backgroundColor: "#ffffff",
     border: "1px solid #e2e8f0",
-    padding: "32px",
-    borderRadius: "16px",
-    maxWidth: "500px",
-    textAlign: "center"
+    padding: "40px",
+    borderRadius: "20px",
+    maxWidth: "460px",
+    textAlign: "center",
+    boxShadow: "0 10px 15px -3px rgba(0,0,0,0.05)"
   },
   code: {
     backgroundColor: "#f1f5f9",
-    color: "#e11d48",
-    padding: "2px 6px",
-    borderRadius: "4px",
+    color: "#ef4444",
+    padding: "3px 6px",
+    borderRadius: "6px",
     fontFamily: "monospace",
     fontSize: "0.9em"
   }

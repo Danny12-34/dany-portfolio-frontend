@@ -6,6 +6,8 @@ import { PortfolioView } from "./features/PortfolioView";
 import { DashboardView } from "./features/DashboardView";
 
 import AnalyticsDashboard from "./pages/AnalyticsDashboard";
+import {AnalyticsDashboardView} from "./pages/AnalyticsDashboardView";
+
 import { trackPageVisit } from "./analytics/tracker";
 
 // 2. Initialize GA4 with your Measurement ID
@@ -36,6 +38,7 @@ function App() {
 
         {/* Analytics Dashboard */}
         <Route path="/analytics" element={<AnalyticsDashboard />} />
+        <Route path="/analyticsDash" element={<AnalyticsDashboardView />} />
       </Routes>
     </BrowserRouter>
   );

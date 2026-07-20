@@ -1,22 +1,21 @@
 import React, { useEffect, useState } from "react";
 import * as API from "../api/services";
 import { Card } from "../components/ui/Card";
-import { DashboardView } from "./DashboardView";
 
 // Helper function to safely parse asset URLs
 const safeParseUrls = (data) => {
   if (!data) return [];
   if (Array.isArray(data)) return data;
-  
+
   try {
-    if (typeof data === 'string' && data.trim().startsWith('[')) {
+    if (typeof data === "string" && data.trim().startsWith("[")) {
       return JSON.parse(data);
     }
   } catch (e) {
     console.error("Error parsing JSON assets inside safeParseUrls:", e);
   }
-  
-  return typeof data === 'string' ? [data] : [];
+
+  return typeof data === "string" ? [data] : [];
 };
 
 // Simple frontend DJB2 hashing utility to protect raw strings in memory
@@ -29,16 +28,16 @@ const frontendHash = (str) => {
 };
 
 export const PortfolioView = () => {
-  const [store, setStore] = useState({ 
-    profile: [], 
-    skills: [], 
-    education: [], 
-    experience: [], 
-    projects: [], 
-    certifications: [], 
-    languages: [], 
+  const [store, setStore] = useState({
+    profile: [],
+    skills: [],
+    education: [],
+    experience: [],
+    projects: [],
+    certifications: [],
+    languages: [],
     references: [],
-    otherdocuments: [] 
+    otherdocuments: [],
   });
   const [loading, setLoading] = useState(true);
   const [activeLightboxImg, setActiveLightboxImg] = useState(null);
@@ -51,34 +50,45 @@ export const PortfolioView = () => {
 
   // Targets
   const TARGET_EMAIL = "danny@gmail.com";
-  // Pre-hashed '1212' using frontendHash utility to ensure zero clear-text evaluations
   const TARGET_HASH = frontendHash("1212");
 
   useEffect(() => {
     const collectAllData = async () => {
       try {
         const [
-          profile, 
-          skills, 
-          education, 
-          experience, 
-          projects, 
-          certifications, 
-          languages, 
+          profile,
+          skills,
+          education,
+          experience,
+          projects,
+          certifications,
+          languages,
           references,
-          otherdocuments 
+          otherdocuments,
         ] = await Promise.all([
-          API.ProfileService.getAll(), 
-          API.SkillsService.getAll(), 
+          API.ProfileService.getAll(),
+          API.SkillsService.getAll(),
           API.EducationService.getAll(),
-          API.ExperienceService.getAll(), 
-          API.ProjectsService.getAll(), 
+          API.ExperienceService.getAll(),
+          API.ProjectsService.getAll(),
           API.CertificationsService.getAll(),
-          API.LanguagesService.getAll(), 
+          API.LanguagesService.getAll(),
           API.ReferencesService.getAll(),
-          API.OtherDocumentsService ? API.OtherDocumentsService.getAll() : Promise.resolve([])
+          API.OtherDocumentsService
+            ? API.OtherDocumentsService.getAll()
+            : Promise.resolve([]),
         ]);
-        setStore({ profile, skills, education, experience, projects, certifications, languages, references, otherdocuments });
+        setStore({
+          profile,
+          skills,
+          education,
+          experience,
+          projects,
+          certifications,
+          languages,
+          references,
+          otherdocuments,
+        });
       } catch (e) {
         console.error("Failed fetching live profile portfolio parameters.", e);
       } finally {
@@ -108,9 +118,11 @@ export const PortfolioView = () => {
 
     const computedInputHash = frontendHash(authPassword);
 
-    if (authEmail.trim().toLowerCase() === TARGET_EMAIL && computedInputHash === TARGET_HASH) {
+    if (
+      authEmail.trim().toLowerCase() === TARGET_EMAIL &&
+      computedInputHash === TARGET_HASH
+    ) {
       setShowAuthModal(false);
-      // Redirects the current browser window session to the logical dashboard path route
       window.location.pathname = "/dashboard";
     } else {
       setAuthError("Invalid administrative credentials provided.");
@@ -125,7 +137,7 @@ export const PortfolioView = () => {
       </div>
     );
   }
-  
+
   const user = store.profile[0] || {};
 
   return (
@@ -159,10 +171,6 @@ export const PortfolioView = () => {
           box-shadow: 0 16px 32px rgba(59, 130, 246, 0.08) !important;
         }
 
-        .custom-card-wrapper h3, .custom-card-wrapper h4 {
-          color: #0f172a !important;
-        }
-
         .skill-badge {
           background: #ffffff;
           border: 1px solid #e2e8f0;
@@ -174,7 +182,6 @@ export const PortfolioView = () => {
           display: inline-flex;
           align-items: center;
           gap: 6px;
-          box-shadow: 0 2px 4px rgba(0,0,0,0.01);
         }
 
         .skill-badge:hover {
@@ -185,16 +192,10 @@ export const PortfolioView = () => {
           box-shadow: 0 6px 15px rgba(59, 130, 246, 0.15);
         }
 
-        .skill-badge:hover .category-span {
-          color: rgba(255, 255, 255, 0.9) !important;
-          background: rgba(255, 255, 255, 0.2) !important;
-        }
-
         .hyperlink-element:hover {
           background: #3b82f6 !important;
           color: #ffffff !important;
           transform: translateY(-2px);
-          box-shadow: 0 6px 15px rgba(59, 130, 246, 0.15);
         }
 
         .gallery-image:hover, .doc-preview-image:hover {
@@ -204,7 +205,6 @@ export const PortfolioView = () => {
 
         .inline-view-btn:hover {
           background: #1d4ed8 !important;
-          transform: translateY(-1px);
         }
 
         .action-login-trigger {
@@ -219,24 +219,60 @@ export const PortfolioView = () => {
           display: flex;
           align-items: center;
           gap: 8px;
+          white-space: nowrap;
         }
 
-        .action-login-trigger:hover {
-          background: #0f172a;
-          color: #ffffff;
-          border-color: #0f172a;
-          box-shadow: 0 4px 12px rgba(15, 23, 42, 0.15);
+        /* --- RESPONSIVE BREAKPOINTS --- */
+        
+        /* Tablet Adjustments (max-width: 900px) */
+        @media (max-width: 900px) {
+          .dual-grid-structure {
+            grid-template-columns: 1fr !important;
+            gap: 24px !important;
+          }
+          .right-sidebar-column {
+            position: static !important;
+          }
+        }
+
+        /* Mobile Adjustments (max-width: 640px) */
+        @media (max-width: 640px) {
+          .header-region {
+            flex-direction: column !important;
+            text-align: center !important;
+            padding: 20px !important;
+            gap: 20px !important;
+          }
+          .meta-metrics-row, .hyperlinks-row {
+            justify-content: center !important;
+          }
+          .nav-container {
+            padding: 0 16px !important;
+          }
+          .portfolio-canvas {
+            padding: 0 16px !important;
+            margin-top: 16px !important;
+          }
+          .custom-card-wrapper {
+            padding: 16px !important;
+          }
+          .bottom-cert-row-grid {
+            grid-template-columns: 1fr !important;
+          }
         }
       `}</style>
 
       {/* TOP NAVIGATION BAR */}
       <nav style={styles.topNavbar}>
-        <div style={styles.navContainer}>
+        <div className="nav-container" style={styles.navContainer}>
           <div style={styles.navLogo}>Engineered Workspace</div>
-          <button 
-            type="button" 
-            className="action-login-trigger" 
-            onClick={() => { setAuthError(""); setShowAuthModal(true); }}
+          <button
+            type="button"
+            className="action-login-trigger"
+            onClick={() => {
+              setAuthError("");
+              setShowAuthModal(true);
+            }}
           >
             🔒 Administrative Gateway
           </button>
@@ -244,13 +280,12 @@ export const PortfolioView = () => {
       </nav>
 
       <div className="portfolio-canvas" style={styles.canvas}>
-        
         {/* HERO INTRO BLOCK */}
-        <div style={styles.headerRegion}>
+        <div className="header-region" style={styles.headerRegion}>
           {user.profile_image_url && (
-            <img 
-              src={user.profile_image_url} 
-              alt={user.name || "Developer"} 
+            <img
+              src={user.profile_image_url}
+              alt={user.name || "Developer"}
               style={styles.avatarFrame}
             />
           )}
@@ -258,26 +293,32 @@ export const PortfolioView = () => {
             <h1 style={styles.profileName}>{user.name || "Anonymous Developer"}</h1>
             <h3 style={styles.profileTitle}>{user.title}</h3>
             {user.headline && <p style={styles.headlineQuote}>“{user.headline}”</p>}
-            
-            <div style={styles.metaMetricsRow}>
+
+            <div className="meta-metrics-row" style={styles.metaMetricsRow}>
               {user.email && <span style={styles.metricItem}>📧 {user.email}</span>}
               {user.phone && <span style={styles.metricItem}>📞 {user.phone}</span>}
               {user.location && <span style={styles.metricItem}>📍 {user.location}</span>}
             </div>
-            
-            <div style={styles.hyperlinksRow}>
-              {user.github && <a href={user.github} target="_blank" rel="noreferrer" className="hyperlink-element" style={styles.hyperlink}>GitHub Profile</a>}
-              {user.linkedin && <a href={user.linkedin} target="_blank" rel="noreferrer" className="hyperlink-element" style={styles.hyperlink}>LinkedIn Connect</a>}
+
+            <div className="hyperlinks-row" style={styles.hyperlinksRow}>
+              {user.github && (
+                <a href={user.github} target="_blank" rel="noreferrer" className="hyperlink-element" style={styles.hyperlink}>
+                  GitHub Profile
+                </a>
+              )}
+              {user.linkedin && (
+                <a href={user.linkedin} target="_blank" rel="noreferrer" className="hyperlink-element" style={styles.hyperlink}>
+                  LinkedIn Connect
+                </a>
+              )}
             </div>
           </div>
         </div>
 
         {/* ASYMMETRICAL COLUMN MATRIX */}
-        <div style={styles.dualGridStructure}>
-          
+        <div className="dual-grid-structure" style={styles.dualGridStructure}>
           {/* LEFT SIDE COLUMN (MAIN PROFILE DETAILS) */}
           <div style={styles.leftMainColumn}>
-            
             {/* EXECUTIVE SUMMARY (BIO) */}
             {user.bio && (
               <section style={styles.section}>
@@ -293,21 +334,31 @@ export const PortfolioView = () => {
               <section style={styles.section}>
                 <h2 style={styles.sectionTitle}>Featured Operational Inventions</h2>
                 <div style={styles.projectGrid}>
-                  {store.projects.map(proj => (
+                  {store.projects.map((proj) => (
                     <div key={proj.id} className="custom-card-wrapper">
                       <Card title={proj.title} subtitle={`Engineered with: ${proj.technologies}`}>
-                        <p style={{ ...styles.cardBodyText, marginBottom: "16px" }}>{proj.description}</p>
-                        <div style={{ display: "flex", gap: "16px", marginBottom: "16px" }}>
-                          {proj.github_url && <a href={proj.github_url} target="_blank" rel="noreferrer" style={styles.textLinkBlue}>Source Code</a>}
-                          {proj.live_url && <a href={proj.live_url} target="_blank" rel="noreferrer" style={styles.textLinkGreen}>Production Live</a>}
+                        <p style={{ ...styles.cardBodyText, marginBottom: "16px" }}>
+                          {proj.description}
+                        </p>
+                        <div style={{ display: "flex", gap: "16px", marginBottom: "16px", flexWrap: "wrap" }}>
+                          {proj.github_url && (
+                            <a href={proj.github_url} target="_blank" rel="noreferrer" style={styles.textLinkBlue}>
+                              Source Code
+                            </a>
+                          )}
+                          {proj.live_url && (
+                            <a href={proj.live_url} target="_blank" rel="noreferrer" style={styles.textLinkGreen}>
+                              Production Live
+                            </a>
+                          )}
                         </div>
-                        
+
                         <div style={styles.projectGalleryRow}>
                           {safeParseUrls(proj.image_urls).map((url, idx) => (
-                            <img 
-                              key={idx} 
-                              src={url} 
-                              alt="Production Module Preview" 
+                            <img
+                              key={idx}
+                              src={url}
+                              alt="Production Module Preview"
                               className="gallery-image"
                               style={styles.showcaseAssetCard}
                               onClick={() => setActiveLightboxImg(url)}
@@ -326,7 +377,7 @@ export const PortfolioView = () => {
               <section style={styles.section}>
                 <h2 style={styles.premiumSectionTitle}>Professional & Leadership History</h2>
                 <div style={styles.timelineStack}>
-                  {store.experience.map(exp => (
+                  {store.experience.map((exp) => (
                     <div key={exp.id} className="custom-card-wrapper">
                       <Card title={exp.position} subtitle={`${exp.organization} ⚡ ${exp.period}`}>
                         <p style={styles.premiumReaderExperience}>{exp.description}</p>
@@ -339,8 +390,7 @@ export const PortfolioView = () => {
           </div>
 
           {/* RIGHT SIDE STICKY COMPLEMENTARY COLUMN */}
-          <div style={styles.rightSidebarColumn}>
-            
+          <div className="right-sidebar-column" style={styles.rightSidebarColumn}>
             {/* CAREER OBJECTIVE CALLOUT */}
             {user.objective && (
               <div style={styles.objectiveCallout}>
@@ -354,10 +404,12 @@ export const PortfolioView = () => {
               <div style={styles.sidebarSection}>
                 <h3 style={styles.sidebarSectionTitle}>Technical Competencies</h3>
                 <div style={styles.skillsMatrixFlex}>
-                  {store.skills.map(sk => (
+                  {store.skills.map((sk) => (
                     <span key={sk.id} className="skill-badge">
-                      {sk.skill_name} 
-                      <span className="category-span" style={styles.opacitySub}>{sk.category}</span>
+                      {sk.skill_name}
+                      <span className="category-span" style={styles.opacitySub}>
+                        {sk.category}
+                      </span>
                     </span>
                   ))}
                 </div>
@@ -369,11 +421,13 @@ export const PortfolioView = () => {
               <div style={styles.sidebarSection}>
                 <h3 style={styles.sidebarSectionTitle}>Academic Background</h3>
                 <div style={styles.verticalStack}>
-                  {store.education.map(edu => (
+                  {store.education.map((edu) => (
                     <div key={edu.id} style={styles.compactCard}>
                       <strong style={styles.cardHeading}>{edu.qualification}</strong>
                       <p style={styles.cardSubheading}>{edu.institution}</p>
-                      <span style={styles.cardTimeline}>{edu.start_year} — {edu.end_year || "Present"}</span>
+                      <span style={styles.cardTimeline}>
+                        {edu.start_year} — {edu.end_year || "Present"}
+                      </span>
                     </div>
                   ))}
                 </div>
@@ -385,9 +439,9 @@ export const PortfolioView = () => {
               <div style={styles.sidebarSection}>
                 <h3 style={styles.sidebarSectionTitle}>Languages</h3>
                 <div style={styles.languagesCapsuleWrap}>
-                  {store.languages.map(lang => (
+                  {store.languages.map((lang) => (
                     <div key={lang.id} style={styles.languagePill}>
-                      <strong style={{ color: "#057857" }}>{lang.language}</strong> 
+                      <strong style={{ color: "#057857" }}>{lang.language}</strong>
                       <span style={styles.languageProficiency}>{lang.proficiency}</span>
                     </div>
                   ))}
@@ -400,7 +454,7 @@ export const PortfolioView = () => {
               <div style={styles.sidebarSection}>
                 <h3 style={styles.sidebarSectionTitle}>Professional Endorsements</h3>
                 <div style={styles.verticalStack}>
-                  {store.references.map(ref => (
+                  {store.references.map((ref) => (
                     <div key={ref.id} style={styles.referenceProfileNode}>
                       <strong style={styles.refName}>{ref.names}</strong>
                       <span style={styles.refTitle}>{ref.position}</span>
@@ -417,20 +471,19 @@ export const PortfolioView = () => {
         {(store.certifications.length > 0 || store.otherdocuments.length > 0) && (
           <section style={{ ...styles.section, marginTop: "24px" }}>
             <h2 style={styles.sectionTitle}>CERTIFICATES & OTHER DOCUMENTS</h2>
-            <div style={styles.bottomCertRowGrid}>
-              
+            <div className="bottom-cert-row-grid" style={styles.bottomCertRowGrid}>
               {/* Loop Certifications */}
-              {store.certifications.map(cert => (
+              {store.certifications.map((cert) => (
                 <div key={cert.id} style={styles.compactCard}>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: "12px" }}>
                     <div>
                       <strong style={styles.cardHeading}>{cert.title}</strong>
                       <span style={{ ...styles.cardSubheading, margin: 0 }}>{cert.organization}</span>
                     </div>
-                    <button 
-                      type="button" 
+                    <button
+                      type="button"
                       className="inline-view-btn"
-                      style={styles.inlineViewBtn} 
+                      style={styles.inlineViewBtn}
                       onClick={() => handleViewDocument(cert)}
                     >
                       View Document
@@ -440,17 +493,21 @@ export const PortfolioView = () => {
               ))}
 
               {/* Loop Supplementary Documents */}
-              {store.otherdocuments.map(doc => (
+              {store.otherdocuments.map((doc) => (
                 <div key={doc.id} style={{ ...styles.compactCard, borderLeft: "4px solid #3b82f6" }}>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
-                    <div style={{ flex: 1, paddingRight: "12px" }}>
-                      <strong style={styles.cardHeading}>{doc.document_name || doc.title || "Supplementary Asset"}</strong>
-                      {doc.description && <p style={{ ...styles.cardSubheading, margin: "4px 0 0 0" }}>{doc.description}</p>}
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "12px" }}>
+                    <div style={{ flex: 1 }}>
+                      <strong style={styles.cardHeading}>
+                        {doc.document_name || doc.title || "Supplementary Asset"}
+                      </strong>
+                      {doc.description && (
+                        <p style={{ ...styles.cardSubheading, margin: "4px 0 0 0" }}>{doc.description}</p>
+                      )}
                     </div>
-                    <button 
-                      type="button" 
+                    <button
+                      type="button"
                       className="inline-view-btn"
-                      style={{ ...styles.inlineViewBtn, backgroundColor: "#475569" }} 
+                      style={{ ...styles.inlineViewBtn, backgroundColor: "#475569" }}
                       onClick={() => handleViewDocument(doc)}
                     >
                       Open File
@@ -471,7 +528,6 @@ export const PortfolioView = () => {
             </div>
           </section>
         )}
-
       </div>
 
       {/* ADMINISTRATIVE LOGIN INTERCEPT MODAL */}
@@ -479,18 +535,22 @@ export const PortfolioView = () => {
         <div style={styles.lightboxOverlay} onClick={() => setShowAuthModal(false)}>
           <div style={styles.authModalContainer} onClick={(e) => e.stopPropagation()}>
             <div style={styles.authModalHeader}>
-              <h3 style={{ margin: 0, fontSize: "1.25rem", color: "#0f172a" }}>Administrative Identity Gateway</h3>
-              <button style={styles.authModalCloseX} onClick={() => setShowAuthModal(false)}>×</button>
+              <h3 style={{ margin: 0, fontSize: "1.25rem", color: "#0f172a" }}>
+                Administrative Identity Gateway
+              </h3>
+              <button style={styles.authModalCloseX} onClick={() => setShowAuthModal(false)}>
+                ×
+              </button>
             </div>
-            
+
             <form onSubmit={handleLoginSubmit} style={styles.authForm}>
               {authError && <div style={styles.authFeedbackError}>{authError}</div>}
-              
+
               <div style={styles.formGroup}>
                 <label style={styles.formLabel}>Identity E-mail</label>
-                <input 
-                  type="email" 
-                  required 
+                <input
+                  type="email"
+                  required
                   style={styles.formInputField}
                   placeholder="name@domain.com"
                   value={authEmail}
@@ -500,9 +560,9 @@ export const PortfolioView = () => {
 
               <div style={styles.formGroup}>
                 <label style={styles.formLabel}>Security Access Key</label>
-                <input 
-                  type="password" 
-                  required 
+                <input
+                  type="password"
+                  required
                   style={styles.formInputField}
                   placeholder="••••••••"
                   value={authPassword}
@@ -522,7 +582,9 @@ export const PortfolioView = () => {
       {activeLightboxImg && (
         <div style={styles.lightboxOverlay} onClick={() => setActiveLightboxImg(null)}>
           <div style={styles.lightboxContent} onClick={(e) => e.stopPropagation()}>
-            <button style={styles.lightboxCloseBtn} onClick={() => setActiveLightboxImg(null)}>×</button>
+            <button style={styles.lightboxCloseBtn} onClick={() => setActiveLightboxImg(null)}>
+              ×
+            </button>
             <img src={activeLightboxImg} alt="High resolution inspection" style={styles.lightboxImage} />
           </div>
         </div>
@@ -547,7 +609,7 @@ const styles = {
     margin: "0 auto",
     padding: "0 24px",
     display: "flex",
-    justifyContent: "space-between",
+    justify: "space-between",
     alignItems: "center",
   },
   navLogo: {
@@ -599,24 +661,24 @@ const styles = {
   avatarFrame: {
     width: "120px",
     height: "120px",
-    borderRadius: "16px", 
+    borderRadius: "16px",
     objectFit: "cover",
     border: "4px solid #f1f5f9",
   },
   metaIdentityBlock: {
-    flex: "1 1 500px",
+    flex: "1 1 300px",
   },
   profileName: {
     fontSize: "2.25rem",
     fontWeight: "800",
     margin: "0 0 4px 0",
     letterSpacing: "-0.5px",
-    color: "#0f172a", 
+    color: "#0f172a",
   },
   profileTitle: {
     fontSize: "1.15rem",
     fontWeight: "600",
-    color: "#3b82f6", 
+    color: "#3b82f6",
     margin: "0 0 12px 0",
   },
   headlineQuote: {
@@ -642,6 +704,7 @@ const styles = {
   },
   hyperlinksRow: {
     display: "flex",
+    flexWrap: "wrap",
     gap: "12px",
   },
   hyperlink: {
@@ -716,7 +779,7 @@ const styles = {
   premiumReaderBio: {
     fontSize: "1.06rem",
     lineHeight: "1.8",
-    color: "#1e293b", 
+    color: "#1e293b",
     fontWeight: "600",
     letterSpacing: "-0.1px",
     margin: 0,
@@ -733,7 +796,7 @@ const styles = {
   premiumReaderObjective: {
     fontSize: "0.96rem",
     lineHeight: "1.75",
-    color: "#0f172a", 
+    color: "#0f172a",
     fontWeight: "600",
     letterSpacing: "-0.05px",
     margin: 0,
@@ -745,10 +808,10 @@ const styles = {
     fontWeight: "600",
     letterSpacing: "0.02px",
     margin: 0,
-    whiteSpace: "pre-wrap", 
+    whiteSpace: "pre-wrap",
   },
   objectiveCallout: {
-    background: "#ecfdf5", 
+    background: "#ecfdf5",
     borderLeft: "4px solid #10b981",
     padding: "18px 20px",
     borderRadius: "12px",
@@ -795,10 +858,11 @@ const styles = {
     borderRadius: "8px",
     border: "1px solid #cbd5e1",
     cursor: "pointer",
+    flexShrink: 0,
   },
   bottomCertRowGrid: {
     display: "grid",
-    gridTemplateColumns: "repeat(auto-fill, minmax(340px, 1fr))",
+    gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))",
     gap: "20px",
   },
   verticalStack: {
@@ -832,7 +896,7 @@ const styles = {
     display: "flex",
     flexWrap: "wrap",
     gap: "8px",
-    marginTop: "12px"
+    marginTop: "12px",
   },
   docWrapper: {
     width: "75px",
@@ -840,7 +904,7 @@ const styles = {
     borderRadius: "6px",
     overflow: "hidden",
     cursor: "pointer",
-    border: "1px solid #e2e8f0"
+    border: "1px solid #e2e8f0",
   },
   certDocumentPreview: {
     width: "100%",
@@ -856,6 +920,7 @@ const styles = {
     fontSize: "0.78rem",
     fontWeight: "600",
     cursor: "pointer",
+    whiteSpace: "nowrap",
   },
   languagesCapsuleWrap: {
     display: "flex",
@@ -897,9 +962,18 @@ const styles = {
     fontSize: "0.82rem",
     fontWeight: "500",
   },
-  textLinkBlue: { color: "#3b82f6", fontWeight: "600", textDecoration: "none", fontSize: "0.88rem" },
-  textLinkGreen: { color: "#10b981", fontWeight: "600", textDecoration: "none", fontSize: "0.88rem" },
-  
+  textLinkBlue: {
+    color: "#3b82f6",
+    fontWeight: "600",
+    textDecoration: "none",
+    fontSize: "0.88rem",
+  },
+  textLinkGreen: {
+    color: "#10b981",
+    fontWeight: "600",
+    textDecoration: "none",
+    fontSize: "0.88rem",
+  },
   lightboxOverlay: {
     position: "fixed",
     top: 0,
@@ -912,11 +986,11 @@ const styles = {
     justifyContent: "center",
     alignItems: "center",
     zIndex: 999,
-    padding: "20px"
+    padding: "20px",
   },
   lightboxContent: {
     position: "relative",
-    maxWidth: "85%",
+    maxWidth: "90%",
     maxHeight: "85vh",
     backgroundColor: "#ffffff",
     padding: "8px",
@@ -926,7 +1000,7 @@ const styles = {
     maxWidth: "100%",
     maxHeight: "75vh",
     objectFit: "contain",
-    borderRadius: "6px"
+    borderRadius: "6px",
   },
   lightboxCloseBtn: {
     position: "absolute",
@@ -936,7 +1010,7 @@ const styles = {
     border: "none",
     color: "#ffffff",
     fontSize: "2rem",
-    cursor: "pointer"
+    cursor: "pointer",
   },
   authModalContainer: {
     width: "100%",
@@ -1007,5 +1081,5 @@ const styles = {
     borderRadius: "10px",
     fontSize: "0.85rem",
     fontWeight: "500",
-  }
+  },
 };
