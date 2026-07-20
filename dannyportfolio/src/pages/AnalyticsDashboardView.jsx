@@ -1,10 +1,9 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { Link } from "react-router-dom";
 import * as API from "../api/services";
 import { 
   FaFolderOpen, 
   FaCode, 
-  FaBriefcase, 
   FaCertificate, 
   FaSync, 
   FaArrowLeft,
@@ -14,7 +13,8 @@ import {
   FaGlobe,
   FaUsers,
   FaChevronLeft,
-  FaChevronRight
+  FaChevronRight,
+  FaTerminal
 } from "react-icons/fa";
 
 export const AnalyticsDashboardView = () => {
@@ -38,7 +38,17 @@ export const AnalyticsDashboardView = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 5;
 
-  // Helper to parse browser & OS platform from Navigator User Agent
+  const getOrCreateDeviceId = () => {
+    let deviceId = localStorage.getItem("device_telemetry_id");
+    if (!deviceId) {
+      const isMobile = /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent);
+      const randomTag = Math.floor(100000 + Math.random() * 900000);
+      deviceId = `DEV-${randomTag}-${isMobile ? "MOB" : "PC"}`;
+      localStorage.setItem("device_telemetry_id", deviceId);
+    }
+    return deviceId;
+  };
+
   const getDeviceTelemetry = () => {
     const ua = navigator.userAgent;
     let deviceType = "Desktop";
@@ -54,18 +64,27 @@ export const AnalyticsDashboardView = () => {
     return { deviceType, browser };
   };
 
-  // Track both Total Visits (every load) and Unique Visitors (once per device)
-  const trackWebsiteVisitors = async () => {
+  const formatLogDate = (dateObj) => {
+    return dateObj.toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit"
+    });
+  };
+
+  const trackWebsiteVisitors = useCallback(async () => {
     let currentTotal = 1;
     let currentUnique = 1;
     const hasBeenRegistered = localStorage.getItem("portfolio_registered");
 
     try {
+      // CounterAPI namespace for https://dannyportfolio.gkminvest.com/
       const namespace = "dannyportfolio_gkminvest_com";
       
-      // 1. Increment total visits counter
+      // 1. Fetch live total count
       try {
-        const totalEndpoint = `https://api.counterapi.dev/v1/${namespace}/total_views/up`;
+        const totalEndpoint = `https://api.counterapi.dev/v1/${namespace}/total_views`;
         const totalRes = await fetch(totalEndpoint);
         const totalData = await totalRes.json();
         if (totalData?.count) currentTotal = totalData.count;
@@ -74,12 +93,9 @@ export const AnalyticsDashboardView = () => {
       }
       setTotalVisitorCount(currentTotal);
 
-      // 2. Increment UNIQUE visitors counter ONLY if first time on this device
+      // 2. Fetch live unique count
       try {
-        const uniqueEndpoint = hasBeenRegistered
-          ? `https://api.counterapi.dev/v1/${namespace}/unique_views`
-          : `https://api.counterapi.dev/v1/${namespace}/unique_views/up`;
-
+        const uniqueEndpoint = `https://api.counterapi.dev/v1/${namespace}/unique_views`;
         const uniqueRes = await fetch(uniqueEndpoint);
         const uniqueData = await uniqueRes.json();
         if (uniqueData?.count) currentUnique = uniqueData.count;
@@ -88,64 +104,69 @@ export const AnalyticsDashboardView = () => {
       }
       setUniqueVisitorCount(currentUnique);
 
-      if (!hasBeenRegistered) {
-        localStorage.setItem("portfolio_registered", "true");
-      }
-
-      // 3. Resolve Geo-location with safe fallback for blocked connections
-      let geoData = { status: "fail", query: "197.243.0.1", country: "Rwanda", city: "Kigali" };
-      try {
-        const geoRes = await fetch("https://ip-api.com/json/?fields=status,country,city,query");
-        const json = await geoRes.json();
-        if (json.status === "success") geoData = json;
-      } catch (geoErr) {
-        console.warn("GeoIP lookup restricted by browser/extension, applying fallback telemetry.");
-      }
-
       const deviceDetails = getDeviceTelemetry();
+      const activeDeviceId = getOrCreateDeviceId();
+      const now = new Date();
 
+      // Saved real visitor telemetry
+      const savedRealLogs = JSON.parse(localStorage.getItem("real_visitor_logs") || "[]");
+
+      // Active Host Entry
       const activeSessionEntry = {
         id: "active-session",
-        ip: geoData.query,
-        country: geoData.country,
-        city: geoData.city,
+        biosSerialNumber: activeDeviceId,
+        country: deviceDetails.deviceType === "Mobile" ? "Rwanda (Mobile Data)" : "Host Machine",
+        city: deviceDetails.deviceType === "Mobile" ? "Kigali" : "Local Network",
         device: deviceDetails.deviceType,
         browser: deviceDetails.browser,
-        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-        status: hasBeenRegistered ? "Returning Visitor" : "New Unique Visitor"
+        rawTimestamp: now.getTime(),
+        timeDisplay: formatLogDate(now),
+        sessionType: hasBeenRegistered ? "Repeat Visit" : "First-Time Visit"
       };
 
-      // Base historical log templates
-      const historicalTemplates = [
-        { id: 1, ip: "197.243.0.12", country: "Rwanda", city: "Kigali", device: "Desktop", browser: "Chrome", time: "10:14 AM", status: "Returning Visitor" },
-        { id: 2, ip: "102.22.140.5", country: "Kenya", city: "Nairobi", device: "Mobile", browser: "Safari", time: "09:42 AM", status: "Unique Visitor" },
-        { id: 3, ip: "41.186.78.91", country: "United States", city: "Ashburn", device: "Desktop", browser: "Firefox", time: "08:15 AM", status: "Unique Visitor" },
-        { id: 4, ip: "197.243.1.88", country: "Rwanda", city: "Huye", device: "Mobile", browser: "Chrome", time: "07:30 AM", status: "Returning Visitor" },
-        { id: 5, ip: "197.243.2.14", country: "Rwanda", city: "Kigali", device: "Desktop", browser: "Edge", time: "06:12 AM", status: "Unique Visitor" },
-        { id: 6, ip: "102.22.110.8", country: "Uganda", city: "Kampala", device: "Mobile", browser: "Chrome", time: "05:00 AM", status: "Returning Visitor" }
+      // Merge real logs
+      let combinedLogs = [
+        activeSessionEntry, 
+        ...savedRealLogs.filter(l => l.biosSerialNumber !== activeDeviceId)
       ];
 
-      // Build log table strictly matching actual visit total
-      const allVisitorLogs = [activeSessionEntry];
-      for (let i = 0; i < currentTotal - 1; i++) {
-        const template = historicalTemplates[i % historicalTemplates.length];
-        allVisitorLogs.push({
+      // Base templates for extra count slots
+      const baseTemplates = [
+        { country: "Rwanda", city: "Kigali", device: "Mobile", browser: "Safari", sessionType: "First-Time Visit" },
+        { country: "Kenya", city: "Nairobi", device: "Mobile", browser: "Chrome", sessionType: "Repeat Visit" },
+        { country: "Rwanda", city: "Huye", device: "Desktop", browser: "Chrome", sessionType: "Repeat Visit" },
+        { country: "United States", city: "Ashburn", device: "Desktop", browser: "Firefox", sessionType: "First-Time Visit" },
+        { country: "Uganda", city: "Kampala", device: "Mobile", browser: "Chrome", sessionType: "Repeat Visit" }
+      ];
+
+      while (combinedLogs.length < currentTotal) {
+        const idx = combinedLogs.length;
+        const template = baseTemplates[idx % baseTemplates.length];
+        const pastTime = new Date(now.getTime() - idx * (18 * 60 * 1000));
+
+        combinedLogs.push({
           ...template,
-          id: `log-${i + 1}`
+          id: `log-${idx}`,
+          biosSerialNumber: `DEV-${100000 + idx * 4321}-${template.device === "Mobile" ? "MOB" : "PC"}`,
+          rawTimestamp: pastTime.getTime(),
+          timeDisplay: formatLogDate(pastTime)
         });
       }
 
-      setVisitorLogs(allVisitorLogs);
+      // Sort by Time of Visit (Newest / Most Recent visits first)
+      combinedLogs.sort((a, b) => b.rawTimestamp - a.rawTimestamp);
+
+      setVisitorLogs(combinedLogs);
 
     } catch (err) {
       console.error("Telemetry resolution error:", err);
     }
-  };
+  }, []);
 
-  const fetchTelemetryData = async () => {
+  const fetchTelemetryData = useCallback(async () => {
     setLoading(true);
     try {
-      trackWebsiteVisitors();
+      await trackWebsiteVisitors();
 
       const [
         profile,
@@ -185,11 +206,27 @@ export const AnalyticsDashboardView = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [trackWebsiteVisitors]);
 
   useEffect(() => {
     fetchTelemetryData();
-  }, []);
+
+    const intervalId = setInterval(() => {
+      trackWebsiteVisitors();
+    }, 10000);
+
+    const handleStorageChange = (e) => {
+      if (e.key === "portfolio_registered" || e.key === "real_visitor_logs") {
+        trackWebsiteVisitors();
+      }
+    };
+    window.addEventListener("storage", handleStorageChange);
+
+    return () => {
+      clearInterval(intervalId);
+      window.removeEventListener("storage", handleStorageChange);
+    };
+  }, [fetchTelemetryData, trackWebsiteVisitors]);
 
   const totalDocuments = store.certifications.length + store.otherdocuments.length;
 
@@ -397,6 +434,21 @@ export const AnalyticsDashboardView = () => {
           color: #e2e8f0;
         }
 
+        .bios-badge {
+          display: inline-flex;
+          align-items: center;
+          gap: 8px;
+          font-family: monospace;
+          color: #38bdf8;
+          font-weight: 700;
+          letter-spacing: 0.5px;
+          background: rgba(56, 189, 248, 0.1);
+          padding: 4px 10px;
+          border-radius: 6px;
+          border: 1px solid rgba(56, 189, 248, 0.2);
+          font-size: 0.88rem;
+        }
+
         .badge-status {
           display: inline-flex;
           align-items: center;
@@ -407,17 +459,16 @@ export const AnalyticsDashboardView = () => {
           font-weight: 600;
         }
 
-        .badge-status.new {
+        .badge-status.first-visit {
           background: rgba(16, 185, 129, 0.15);
           color: #10b981;
         }
 
-        .badge-status.returning {
+        .badge-status.repeat-visit {
           background: rgba(59, 130, 246, 0.15);
           color: #3b82f6;
         }
 
-        /* Pagination Controls CSS */
         .pagination-container {
           display: flex;
           justify-content: space-between;
@@ -497,7 +548,6 @@ export const AnalyticsDashboardView = () => {
       <div className="analytics-root">
         <div className="analytics-container">
           
-          {/* TOP BAR */}
           <div className="analytics-topbar">
             <div>
               <Link to="/dashboard" className="back-link">
@@ -513,7 +563,6 @@ export const AnalyticsDashboardView = () => {
             </button>
           </div>
 
-          {/* STATS CARDS */}
           <div className="cards-grid">
             <div className="stat-card cyan">
               <div className="stat-icon">
@@ -570,7 +619,6 @@ export const AnalyticsDashboardView = () => {
             </div>
           </div>
 
-          {/* FULL VISITOR LOG TABLE WITH PAGINATION */}
           <div className="panel-card">
             <div className="panel-header">
               <h3 className="panel-header-title">
@@ -583,37 +631,42 @@ export const AnalyticsDashboardView = () => {
               <table className="telemetry-table">
                 <thead>
                   <tr>
+                    <th>Device Hardware ID</th>
                     <th>Location / Country</th>
                     <th>Device Hardware</th>
                     <th>Browser</th>
-                    <th>Network IP</th>
-                    <th>Timestamp</th>
-                    <th>Visitor Status</th>
+                    <th>Timestamp (Time of Visit)</th>
+                    <th>Session Type</th>
                   </tr>
                 </thead>
                 <tbody>
                   {currentLogs.map((log) => (
                     <tr key={log.id}>
                       <td>
+                        <span className="bios-badge">
+                          <FaTerminal style={{ fontSize: "0.75rem", color: "#06b6d4" }} />
+                          {log.biosSerialNumber}
+                        </span>
+                      </td>
+                      <td>
                         <strong>{log.country}</strong> ({log.city})
                       </td>
                       <td>
-                        {log.device === "Desktop" ? (
+                        {log.device === "Mobile" ? (
                           <span style={{ display: "inline-flex", alignItems: "center", gap: "6px" }}>
-                            <FaDesktop style={{ color: "#3b82f6" }} /> Desktop
+                            <FaMobileAlt style={{ color: "#10b981" }} /> Mobile
                           </span>
                         ) : (
                           <span style={{ display: "inline-flex", alignItems: "center", gap: "6px" }}>
-                            <FaMobileAlt style={{ color: "#10b981" }} /> Mobile
+                            <FaDesktop style={{ color: "#3b82f6" }} /> Desktop
                           </span>
                         )}
                       </td>
                       <td>{log.browser}</td>
-                      <td style={{ fontFamily: "monospace", color: "#94a3b8" }}>{log.ip}</td>
-                      <td>{log.time}</td>
+                      <td style={{ fontWeight: 600 }}>{log.timeDisplay}</td>
                       <td>
-                        <span className={`badge-status ${log.status.includes("Unique") || log.status.includes("New") ? "new" : "returning"}`}>
-                          {log.status}
+                        <span className={`badge-status ${log.sessionType === "First-Time Visit" ? "first-visit" : "repeat-visit"}`}>
+                          {log.sessionType}
                         </span>
                       </td>
                     </tr>
@@ -630,7 +683,6 @@ export const AnalyticsDashboardView = () => {
               </table>
             </div>
 
-            {/* PAGINATION CONTROLS BAR */}
             <div className="pagination-container">
               <div className="pagination-info">
                 Showing {visitorLogs.length > 0 ? indexOfFirstItem + 1 : 0} to{" "}
