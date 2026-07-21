@@ -13,7 +13,7 @@ import { trackPageVisit } from "./analytics/tracker";
 // Initialize GA4 with your Measurement ID
 ReactGA.initialize("G-F5WD4XKP3Q");
 
-// Global Analytics & Real Device Telemetry Tracker with Cloud Sync
+// Global Analytics & Real Device Telemetry Tracker with GPS & JSONBin Cloud Sync
 function AnalyticsTracker() {
   const location = useLocation();
 
@@ -21,7 +21,7 @@ function AnalyticsTracker() {
     // 1. Passes the current path to your tracking utility
     trackPageVisit(location.pathname + location.search);
 
-    // 2. Real-time Device & Mobile Hardware Telemetry Capture with JSONBin Sync
+    // 2. Real-time Device & GPS/IP Geolocation Telemetry Capture with JSONBin Sync
     const recordRealDeviceVisit = async () => {
       const ua = navigator.userAgent;
       const isMobile = /Mobi|Android|iPhone|iPad/i.test(ua);
@@ -39,14 +39,68 @@ function AnalyticsTracker() {
         localStorage.setItem("device_telemetry_id", deviceId);
       }
 
+      let country = "Detecting Country...";
+      let city = "Detecting City...";
+
+      // Helper function to fetch city/country via free reverse geocoding from coordinates
+      const fetchAddressFromCoords = async (lat, lon) => {
+        try {
+          const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}`);
+          const data = await res.json();
+          if (data && data.address) {
+            country = data.address.country || "Rwanda";
+            city = data.address.city || data.address.town || data.address.village || data.address.county || "Musanze";
+          }
+        } catch (e) {
+          console.warn("Reverse geocoding failed:", e);
+        }
+      };
+
+      // Try GPS Hardware first if available
+      const getGPSLocation = () => {
+        return new Promise((resolve) => {
+          if (!navigator.geolocation) {
+            resolve(false);
+            return;
+          }
+          navigator.geolocation.getCurrentPosition(
+            async (position) => {
+              await fetchAddressFromCoords(position.coords.latitude, position.coords.longitude);
+              resolve(true);
+            },
+            async (err) => {
+              // Fallback to IP geolocation if GPS is denied or unavailable
+              try {
+                const geoRes = await fetch("https://ipapi.co/json/");
+                const geoData = await geoRes.json();
+                if (geoData && geoData.country_name) {
+                  country = geoData.country_name;
+                  city = geoData.city || "Unknown City";
+                } else {
+                  country = "Rwanda";
+                  city = "Kigali";
+                }
+              } catch (ipErr) {
+                country = "Rwanda";
+                city = "Kigali";
+              }
+              resolve(true);
+            },
+            { timeout: 10000, maximumAge: 60000 }
+          );
+        });
+      };
+
+      await getGPSLocation();
+
       const hasBeenRegistered = localStorage.getItem("portfolio_registered");
       const now = new Date();
 
       const newTelemetryPayload = {
         id: `session-${Date.now()}`,
         biosSerialNumber: deviceId,
-        country: isMobile ? "Rwanda (Mobile Data)" : "Host Machine",
-        city: isMobile ? "Kigali" : "Local Network",
+        country: country,
+        city: city,
         device: isMobile ? "Mobile" : "Desktop",
         browser: browser,
         rawTimestamp: now.getTime(),
@@ -64,16 +118,6 @@ function AnalyticsTracker() {
       }
 
       try {
-        const namespace = "dannyportfolio_gkminvest_com";
-        
-        // Only ping CounterAPI if not running on localhost to avoid CORS noise during development
-        if (window.location.hostname !== "localhost" && window.location.hostname !== "127.0.0.1") {
-          await fetch(`https://api.counterapi.dev/v1/${namespace}/total_views/up`);
-          if (!hasBeenRegistered) {
-            await fetch(`https://api.counterapi.dev/v1/${namespace}/unique_views/up`);
-          }
-        }
-
         // --- JSONBin Cloud Sync Integration ---
         const BIN_ID = "6a5f5e1cf5f4af5e29ac1e1b";
         const API_KEY = "$2a$10$f1PzjyVH7XgKBaNgZwb53.yk.eAKvVNIl7N.F0bx5XSrNYCTR1o8u";
