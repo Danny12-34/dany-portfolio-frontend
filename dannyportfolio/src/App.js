@@ -13,7 +13,7 @@ import { trackPageVisit } from "./analytics/tracker";
 // Initialize GA4 with your Measurement ID
 ReactGA.initialize("G-F5WD4XKP3Q");
 
-// Global Analytics & Real Device Telemetry Tracker
+// Global Analytics & Real Device Telemetry Tracker with Cloud Sync
 function AnalyticsTracker() {
   const location = useLocation();
 
@@ -21,7 +21,7 @@ function AnalyticsTracker() {
     // 1. Passes the current path to your tracking utility
     trackPageVisit(location.pathname + location.search);
 
-    // 2. Real-time Device & Mobile Hardware Telemetry Capture
+    // 2. Real-time Device & Mobile Hardware Telemetry Capture with JSONBin Sync
     const recordRealDeviceVisit = async () => {
       const ua = navigator.userAgent;
       const isMobile = /Mobi|Android|iPhone|iPad/i.test(ua);
@@ -66,20 +66,43 @@ function AnalyticsTracker() {
       try {
         const namespace = "dannyportfolio_gkminvest_com";
         
-        // Ping CounterAPI for live total & unique counters
-        await fetch(`https://api.counterapi.dev/v1/${namespace}/total_views/up`);
-        
-        if (!hasBeenRegistered) {
-          await fetch(`https://api.counterapi.dev/v1/${namespace}/unique_views/up`);
+        // Only ping CounterAPI if not running on localhost to avoid CORS noise during development
+        if (window.location.hostname !== "localhost" && window.location.hostname !== "127.0.0.1") {
+          await fetch(`https://api.counterapi.dev/v1/${namespace}/total_views/up`);
+          if (!hasBeenRegistered) {
+            await fetch(`https://api.counterapi.dev/v1/${namespace}/unique_views/up`);
+          }
         }
 
-        // Save real visit payload to localStorage for dashboard aggregation
-        const existingLogs = JSON.parse(localStorage.getItem("real_visitor_logs") || "[]");
-        const updatedLogs = [newTelemetryPayload, ...existingLogs.filter(l => l.biosSerialNumber !== deviceId)].slice(0, 50);
-        localStorage.setItem("real_visitor_logs", JSON.stringify(updatedLogs));
+        // --- JSONBin Cloud Sync Integration ---
+        const BIN_ID = "6a5f5e1cf5f4af5e29ac1e1b";
+        const API_KEY = "$2a$10$f1PzjyVH7XgKBaNgZwb53.yk.eAKvVNIl7N.F0bx5XSrNYCTR1o8u";
+
+        // Fetch existing logs from your shared cloud bin
+        const res = await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}/latest`, {
+          headers: { "X-Master-Key": API_KEY }
+        });
+        const data = await res.json();
+        const existingLogs = Array.isArray(data.record) ? data.record : [];
+
+        // Append new device entry to the top and keep the latest 50 logs max
+        const updatedLogs = [
+          newTelemetryPayload, 
+          ...existingLogs.filter(l => l.biosSerialNumber !== deviceId)
+        ].slice(0, 50);
+
+        // Push the synchronized array back to the cloud bin
+        await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}`, {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            "X-Master-Key": API_KEY
+          },
+          body: JSON.stringify(updatedLogs)
+        });
 
       } catch (err) {
-        console.warn("Could not sync live telemetry counter:", err);
+        console.warn("Could not sync live telemetry cloud bin:", err);
       }
     };
 

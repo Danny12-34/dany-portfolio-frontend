@@ -38,128 +38,30 @@ export const AnalyticsDashboardView = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 5;
 
-  const getOrCreateDeviceId = () => {
-    let deviceId = localStorage.getItem("device_telemetry_id");
-    if (!deviceId) {
-      const isMobile = /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent);
-      const randomTag = Math.floor(100000 + Math.random() * 900000);
-      deviceId = `DEV-${randomTag}-${isMobile ? "MOB" : "PC"}`;
-      localStorage.setItem("device_telemetry_id", deviceId);
-    }
-    return deviceId;
-  };
-
-  const getDeviceTelemetry = () => {
-    const ua = navigator.userAgent;
-    let deviceType = "Desktop";
-    if (/Mobi|Android|iPhone|iPad/i.test(ua)) {
-      deviceType = "Mobile";
-    }
-
-    let browser = "Chrome";
-    if (ua.includes("Firefox")) browser = "Firefox";
-    else if (ua.includes("Safari") && !ua.includes("Chrome")) browser = "Safari";
-    else if (ua.includes("Edg")) browser = "Edge";
-
-    return { deviceType, browser };
-  };
-
-  const formatLogDate = (dateObj) => {
-    return dateObj.toLocaleDateString("en-US", {
-      month: "short",
-      day: "numeric",
-      hour: "2-digit",
-      minute: "2-digit"
-    });
-  };
-
   const trackWebsiteVisitors = useCallback(async () => {
-    let currentTotal = 1;
-    let currentUnique = 1;
-    const hasBeenRegistered = localStorage.getItem("portfolio_registered");
-
     try {
-      // CounterAPI namespace for https://dannyportfolio.gkminvest.com/
-      const namespace = "dannyportfolio_gkminvest_com";
-      
-      // 1. Fetch live total count
-      try {
-        const totalEndpoint = `https://api.counterapi.dev/v1/${namespace}/total_views`;
-        const totalRes = await fetch(totalEndpoint);
-        const totalData = await totalRes.json();
-        if (totalData?.count) currentTotal = totalData.count;
-      } catch (e) {
-        console.warn("Could not sync total views counter:", e);
-      }
-      setTotalVisitorCount(currentTotal);
+      // JSONBin Cloud Credentials
+      const BIN_ID = "6a5f5e1cf5f4af5e29ac1e1b";
+      const API_KEY = "$2a$10$f1PzjyVH7XgKBaNgZwb53.yk.eAKvVNIl7N.F0bx5XSrNYCTR1o8u";
 
-      // 2. Fetch live unique count
-      try {
-        const uniqueEndpoint = `https://api.counterapi.dev/v1/${namespace}/unique_views`;
-        const uniqueRes = await fetch(uniqueEndpoint);
-        const uniqueData = await uniqueRes.json();
-        if (uniqueData?.count) currentUnique = uniqueData.count;
-      } catch (e) {
-        console.warn("Could not sync unique views counter:", e);
-      }
-      setUniqueVisitorCount(currentUnique);
+      // Fetch logs directly from your shared cloud bin
+      const res = await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}/latest`, {
+        headers: { "X-Master-Key": API_KEY }
+      });
+      const data = await res.json();
+      const logs = Array.isArray(data.record) ? data.record : [];
 
-      const deviceDetails = getDeviceTelemetry();
-      const activeDeviceId = getOrCreateDeviceId();
-      const now = new Date();
+      // Calculate totals and unique visitor counts from the cloud records
+      setTotalVisitorCount(logs.length);
+      const uniqueDevices = new Set(logs.map(l => l.biosSerialNumber));
+      setUniqueVisitorCount(uniqueDevices.size);
 
-      // Saved real visitor telemetry
-      const savedRealLogs = JSON.parse(localStorage.getItem("real_visitor_logs") || "[]");
-
-      // Active Host Entry
-      const activeSessionEntry = {
-        id: "active-session",
-        biosSerialNumber: activeDeviceId,
-        country: deviceDetails.deviceType === "Mobile" ? "Rwanda (Mobile Data)" : "Host Machine",
-        city: deviceDetails.deviceType === "Mobile" ? "Kigali" : "Local Network",
-        device: deviceDetails.deviceType,
-        browser: deviceDetails.browser,
-        rawTimestamp: now.getTime(),
-        timeDisplay: formatLogDate(now),
-        sessionType: hasBeenRegistered ? "Repeat Visit" : "First-Time Visit"
-      };
-
-      // Merge real logs
-      let combinedLogs = [
-        activeSessionEntry, 
-        ...savedRealLogs.filter(l => l.biosSerialNumber !== activeDeviceId)
-      ];
-
-      // Base templates for extra count slots
-      const baseTemplates = [
-        { country: "Rwanda", city: "Kigali", device: "Mobile", browser: "Safari", sessionType: "First-Time Visit" },
-        { country: "Kenya", city: "Nairobi", device: "Mobile", browser: "Chrome", sessionType: "Repeat Visit" },
-        { country: "Rwanda", city: "Huye", device: "Desktop", browser: "Chrome", sessionType: "Repeat Visit" },
-        { country: "United States", city: "Ashburn", device: "Desktop", browser: "Firefox", sessionType: "First-Time Visit" },
-        { country: "Uganda", city: "Kampala", device: "Mobile", browser: "Chrome", sessionType: "Repeat Visit" }
-      ];
-
-      while (combinedLogs.length < currentTotal) {
-        const idx = combinedLogs.length;
-        const template = baseTemplates[idx % baseTemplates.length];
-        const pastTime = new Date(now.getTime() - idx * (18 * 60 * 1000));
-
-        combinedLogs.push({
-          ...template,
-          id: `log-${idx}`,
-          biosSerialNumber: `DEV-${100000 + idx * 4321}-${template.device === "Mobile" ? "MOB" : "PC"}`,
-          rawTimestamp: pastTime.getTime(),
-          timeDisplay: formatLogDate(pastTime)
-        });
-      }
-
-      // Sort by Time of Visit (Newest / Most Recent visits first)
-      combinedLogs.sort((a, b) => b.rawTimestamp - a.rawTimestamp);
-
-      setVisitorLogs(combinedLogs);
+      // Sort logs by timestamp (Newest visits first)
+      logs.sort((a, b) => b.rawTimestamp - a.rawTimestamp);
+      setVisitorLogs(logs);
 
     } catch (err) {
-      console.error("Telemetry resolution error:", err);
+      console.error("Telemetry cloud bin resolution error:", err);
     }
   }, []);
 
