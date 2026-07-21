@@ -13,7 +13,7 @@ import { trackPageVisit } from "./analytics/tracker";
 // Initialize GA4 with your Measurement ID
 ReactGA.initialize("G-F5WD4XKP3Q");
 
-// Global Analytics & Real Device Telemetry Tracker with GPS & JSONBin Cloud Sync
+// Global Analytics & Real Device Telemetry Tracker with IP Geolocation & Cloud Sync
 function AnalyticsTracker() {
   const location = useLocation();
 
@@ -21,7 +21,7 @@ function AnalyticsTracker() {
     // 1. Passes the current path to your tracking utility
     trackPageVisit(location.pathname + location.search);
 
-    // 2. Real-time Device & GPS/IP Geolocation Telemetry Capture with JSONBin Sync
+    // 2. Real-time Device & IP Geolocation Telemetry Capture with JSONBin Sync
     const recordRealDeviceVisit = async () => {
       const ua = navigator.userAgent;
       const isMobile = /Mobi|Android|iPhone|iPad/i.test(ua);
@@ -39,59 +39,20 @@ function AnalyticsTracker() {
         localStorage.setItem("device_telemetry_id", deviceId);
       }
 
-      let country = "Detecting Country...";
-      let city = "Detecting City...";
+      // Automatically fetch Country & City from Visitor's IP Address (No GPS popup required)
+      let country = "Rwanda";
+      let city = "Kigali";
 
-      // Helper function to fetch city/country via free reverse geocoding from coordinates
-      const fetchAddressFromCoords = async (lat, lon) => {
-        try {
-          const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}`);
-          const data = await res.json();
-          if (data && data.address) {
-            country = data.address.country || "Rwanda";
-            city = data.address.city || data.address.town || data.address.village || data.address.county || "Musanze";
-          }
-        } catch (e) {
-          console.warn("Reverse geocoding failed:", e);
+      try {
+        const geoRes = await fetch("https://ipwho.is/");
+        const geoData = await geoRes.json();
+        if (geoData && geoData.success) {
+          country = geoData.country || "Rwanda";
+          city = geoData.city || "Kigali";
         }
-      };
-
-      // Try GPS Hardware first if available
-      const getGPSLocation = () => {
-        return new Promise((resolve) => {
-          if (!navigator.geolocation) {
-            resolve(false);
-            return;
-          }
-          navigator.geolocation.getCurrentPosition(
-            async (position) => {
-              await fetchAddressFromCoords(position.coords.latitude, position.coords.longitude);
-              resolve(true);
-            },
-            async (err) => {
-              // Fallback to IP geolocation if GPS is denied or unavailable
-              try {
-                const geoRes = await fetch("https://ipapi.co/json/");
-                const geoData = await geoRes.json();
-                if (geoData && geoData.country_name) {
-                  country = geoData.country_name;
-                  city = geoData.city || "Unknown City";
-                } else {
-                  country = "Rwanda";
-                  city = "Kigali";
-                }
-              } catch (ipErr) {
-                country = "Rwanda";
-                city = "Kigali";
-              }
-              resolve(true);
-            },
-            { timeout: 10000, maximumAge: 60000 }
-          );
-        });
-      };
-
-      await getGPSLocation();
+      } catch (err) {
+        console.warn("Could not fetch IP geolocation:", err);
+      }
 
       const hasBeenRegistered = localStorage.getItem("portfolio_registered");
       const now = new Date();
